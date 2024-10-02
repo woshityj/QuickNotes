@@ -7,10 +7,14 @@ const config: Config = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    fontFamily: {
+      'inter': ['Inter', '-apple-system', 'system-ui', 'Segoe UI', 'Helvetica'],
+    },
     extend: {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        'primary-black': "#050505",
       },
     },
   },
