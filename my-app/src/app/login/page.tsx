@@ -1,5 +1,5 @@
 import Image from "next/image"
-import NavBar from "../components/navbar";
+import NavBar from "../../components/navbar";
 
 import googleLogo from "../../public/static/images/google_icon.png";
 import appleLogo from "../../public/static/images/apple_logo.png";

@@ -2,12 +2,6 @@
 
 import Image from "next/image";
 
-import instagramLogo from "../../public/static/images/instagram_logo.png";
-import twitterXLogo from "../../public/static/images/twitterx_logo.png";
-import linkedinLogo from "../../public/static/images/linkedin_logo.png";
-import facebookLogo from "../../public/static/images/facebook_logo.png";
-import youtubeLogo from "../../public/static/images/youtube_logo.png";
-
 export default function Footer()
 {
     return (
@@ -19,23 +13,23 @@ export default function Footer()
 
                     <div className="flex flex-row mb-[2.188rem]">
                         <div className="p-1.5">
-                            <Image src={instagramLogo} alt="Instagram Logo"></Image>
+                            <Image width={18} height={18} src="/static/images/instagram_logo.png" alt="Instagram Logo"></Image>
                         </div>
 
                         <div className="p-1.5">
-                            <Image src={twitterXLogo} alt="TwitterX Logo"></Image>
+                            <Image width={18} height={18} src="/static/images/twitterx_logo.png" alt="TwitterX Logo"></Image>
                         </div>
 
                         <div className="p-1.5">
-                            <Image src={linkedinLogo} alt="LinkedIn Logo"></Image>
+                            <Image width={18} height={18} src="/static/images/linkedin_logo.png" alt="LinkedIn Logo"></Image>
                         </div>
 
                         <div className="p-1.5">
-                            <Image src={facebookLogo} alt="Facebook Logo"></Image>
+                            <Image width={18} height={18} src="/static/images/facebook_logo.png" alt="Facebook Logo"></Image>
                         </div>
 
                         <div className="p-1.5">
-                            <Image src={youtubeLogo} alt="Youtube Logo"></Image>
+                            <Image width={18} height={18} src="/static/images/youtube_logo.png" alt="Youtube Logo"></Image>
                         </div>
                     </div>
 
