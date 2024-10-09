@@ -1,7 +1,54 @@
+"use client";
+
 import Image from "next/image"
 import NavBar from "../../components/navbar";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast, Toaster } from "sonner";
+import { backendURL } from "../utils/constants";
+import { cookies } from "next/headers";
 
 export default function Login() {
+
+    const router = useRouter();
+
+    const [loginData, setLoginData] = useState({
+        email: "",
+        password: ""
+    });
+
+    const handleInput = (e: React.ChangeEvent<any>) => {
+        setLoginData({ ...loginData, [`${e.target.name}`] : e.target.value });
+    };
+
+    const handleLogin = async (e: React.ChangeEvent<any>) => {
+        e.preventDefault();
+
+        if (loginData.email.length == 0 || loginData.password.length == 0) {
+            toast.error("Form is incomplete");
+            return null
+        }
+
+        try {
+            const response = await fetch(`${backendURL}/users/login`, {
+                method: "POST",
+                body: JSON.stringify(loginData),
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+            });
+
+            if (response.ok) {
+                toast.success("Successfully logged in");
+                console.log(response.headers.get('refreshToken'));
+            }
+        } catch (err) {
+            toast.error("Server failed to login");
+            console.log(err);
+        }
+    }
+
     return (
         <div className="flex flex-col h-screen">
             <NavBar />
@@ -28,20 +75,21 @@ export default function Login() {
                 <hr></hr>
 
                 <div className="mt-5">
-                    <form method="post">
+                    <form>
                         <div className="mb-4">
                             <label className="text-[#787774] text-[0.75rem] leading-[1.125rem] font-inter">Email</label>
-                            <input type="text" className="w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your email address..."></input>
+                            <input name="email" value={loginData.email} onChange={handleInput} type="text" className="w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your email address..."></input>
                         </div>
 
                         <div className="mb-4">
                             <label className="text-[#787774] text-[0.75rem] leading-[1.125rem] font-inter">Password</label>
-                            <input type="password" className="w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your password..."></input>
+                            <input name="password" value={loginData.password} onChange={handleInput} type="password" className="w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your password..."></input>
                         </div>
 
-                        <button className="w-full font-inter text-[0.875rem] min-h-9 leading-[0.875rem] text-white font-medium bg-[#0582FF] py-[0.406rem] px-[0.75rem] rounded-md">
+                        <button onClick={handleLogin} className="w-full font-inter text-[0.875rem] min-h-9 leading-[0.875rem] text-white font-medium bg-[#0582FF] py-[0.406rem] px-[0.75rem] rounded-md">
                             Login
                         </button>
+                        <Toaster position="bottom-center" />
                     </form>
                 </div>
             </div>
