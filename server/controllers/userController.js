@@ -88,6 +88,3 @@ export async function refreshToken(req, res) {
         return res.status(400).send("Invalid refresh token.");
     }
 }
-
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjcwNTVhYjExOTA2NGNjOTE2ZDhiNzZhIn0sImlhdCI6MTcyODQ4NzQ0OSwiZXhwIjoxNzI4NDkxMDQ5fQ.t0x5JNX2sGGMPQbyE6Tr_QWO_afgTGzsPLYoTF1qjvI
-

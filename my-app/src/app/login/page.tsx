@@ -1,10 +1,6 @@
 import Image from "next/image"
 import NavBar from "../../components/navbar";
 
-import googleLogo from "../../public/static/images/google_icon.png";
-import appleLogo from "../../public/static/images/apple_logo.png";
-import keyLogo from "../../public/static/images/key_logo.png";
-
 export default function Login() {
     return (
         <div className="flex flex-col h-screen">
@@ -16,15 +12,15 @@ export default function Login() {
                 </div>
                 <div className="mb-5">
                     <button className="flex w-[23.125rem] mb-2 px-3 py-[0.688rem] justify-center border-[#E3E2E0] border-[0.035rem] rounded hover:bg-[#0000000a]">
-                        <Image src={googleLogo} height={12} width={12} alt="Google Icon" className="mr-1.5"></Image>
+                        <Image src={"/static/images/google_icon.png"} height={12} width={12} alt="Google Icon" className="mr-1.5"></Image>
                         <span className="font-inter font-medium text-[#1D1B16] text-sm leading-[0.875rem]">Continue with Google</span>
                     </button>
                     <button className="flex w-[23.125rem] mb-2 px-3 py-[0.688rem] justify-center border-[#E3E2E0] border-[0.035rem] rounded hover:bg-[#0000000a]">
-                        <Image src={appleLogo} height={12} width={12} alt="Apple Icon" className="mr-1.5"></Image>
+                        <Image src={"/static/images/apple_logo.png"} height={12} width={12} alt="Apple Icon" className="mr-1.5"></Image>
                         <span className="font-inter font-medium text-[#1D1B16] text-sm leading-[0.875rem]">Continue with Apple</span>
                     </button>
                     <button className="flex w-[23.125rem] mb-2 px-3 py-[0.688rem] justify-center border-[#E3E2E0] border-[0.035rem] rounded hover:bg-[#0000000a]">
-                        <Image src={keyLogo} height={12} width={12} alt="Key Icon" className="mr-1.5"></Image>
+                        <Image src={"/static/images/key_logo.png"} height={12} width={12} alt="Key Icon" className="mr-1.5"></Image>
                         <span className="font-inter font-medium text-[#1D1B16] text-sm leading-[0.875rem]">Single sign-on (SSO)</span>
                     </button>
                 </div>
