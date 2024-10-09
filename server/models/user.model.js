@@ -3,10 +3,6 @@ import mongoose from "mongoose";
 const { Schema, model } = mongoose;
 
 export const UserSchema = new Schema({
-    userId : {
-        type: String,
-        required: true,
-    },
     name: {
         type: String,
         required: true,
@@ -20,3 +16,7 @@ export const UserSchema = new Schema({
         required: true,
     }
 });
+
+let UserItem = mongoose.model('users', UserSchema);
+
+export default UserItem;

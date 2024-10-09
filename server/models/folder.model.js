@@ -28,6 +28,6 @@ const FolderSchema = new Schema({
     ],
 });
 
-let FolderItem = mongoose.model('Folders', FolderSchema);
+let FolderItem = mongoose.model('folders', FolderSchema);
 
 export default FolderItem;

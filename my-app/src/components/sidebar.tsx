@@ -11,12 +11,13 @@ import searchIcon from "../../public/static/images/search_icon.png";
 
 import downArrow from "../../public/static/images/down_arrow.png";
 
-import { ChevronsLeft, MenuIcon } from "lucide-react";
+import { Bot, ChevronsLeft, Home, Inbox, MenuIcon, Search } from "lucide-react";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import UserItem from "./user_item";
+import Notes from "./notes";
 
 export default function SideBar() {
     const pathName = usePathname();
@@ -121,8 +122,23 @@ export default function SideBar() {
                 <div>
                     <UserItem />
                 </div>
-                <div className="mt-4">
-                    <p>Documents</p>
+                <div className="px-3 py-2">
+                    <div className="flex items-center py-1">
+                        <Search className="w-5 h-5 mr-2" />
+                        <p className="font-inter font-medium text-sm leading-[1.313rem] text-[#5F5E5B]">Search</p>
+                    </div>
+                    <div className="flex items-center py-1">
+                        <Bot className="w-5 h-5 mr-2" />
+                        <p className="font-inter font-medium text-sm leading-[1.313rem] text-[#5F5E5B]">QuickNotes AI</p>
+                    </div>
+                    <div className="flex items-center py-1">
+                        <Home className="w-5 h-5 mr-2" />
+                        <p className="font-inter font-medium text-sm leading-[1.313rem] text-[#5F5E5B]">Home</p>
+                    </div>
+                    <div className="flex items-center py-1">
+                        <Inbox className="w-5 h-5 mr-2" />
+                        <p className="font-inter font-medium text-sm leading-[1.313rem] text-[#5F5E5B]">Inbox</p>
+                    </div>
                 </div>
                 <div
                     onMouseDown={handleMouseDown}
@@ -131,6 +147,8 @@ export default function SideBar() {
                 >
 
                 </div>
+
+                <Notes />
             </aside>
 
             <div

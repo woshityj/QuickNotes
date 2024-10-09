@@ -12,14 +12,14 @@ export default function UserItem() {
             <DropdownMenuTrigger asChild>
                 <div role="button" className="flex items-center text-sm p-3 w-full hover:bg-primary/5">
                     <div className="gap-x-2 flex items-center max-w-[150px]">
-                        <Avatar>
+                        <Avatar className="h-[1.375rem] w-[1.375rem] rounded">
                             <AvatarImage src="/static/images/avatar.jpg"></AvatarImage>
                         </Avatar>
                         <span className="text-start font-semibold font-inter line-clamp-1">
                             Tan Yu Jie&apos;s QuickNotes
                         </span>
                     </div>
-                    <ChevronsLeftRight className="rotate-90 ml-2 text-muted-foreground h-4 w-4" />
+                    <ChevronsLeftRight className="rotate-90 ml-6 text-muted-foreground h-4 w-4" />
                 </div>
             </DropdownMenuTrigger>
 

@@ -57,3 +57,8 @@ README.md (this file)
 ```shell
 npm run build
 ```
+
+2. Command to run the Back-End Server via Command Line
+```shell
+node --env-file=config.env server
+```
