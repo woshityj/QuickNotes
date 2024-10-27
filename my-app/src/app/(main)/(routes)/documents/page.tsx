@@ -1,5 +1,6 @@
 "use client";
 
+import { createDocument } from "@/app/services/documentServices";
 import { reAuthenticateUser } from "@/app/utils/authentication";
 import { backendURL } from "@/app/utils/constants";
 import PrimaryButton from "@/components/primary_button";
@@ -10,50 +11,20 @@ import { FormEvent, useEffect } from "react";
 import { useMutation, useQueryClient } from "react-query";
 import { toast } from "sonner";
 
-type Document = {
-    _id: string,
-    title: string,
-    userId: string,
-    isArchived: boolean,
-    parentDocument: string,
-    content: string,
-    coverImage: string,
-    icon: string,
-    isPublished: boolean
-}
-
-const createDocument = async () => {
-	try {
-		const response = await fetch(`${backendURL}/documents/`, {
-			method: "POST",
-			headers: {
-				Accept: "application/json",
-				"Content-Type": "application/json",
-				"Authorization": localStorage.getItem("AuthorizationToken") || "",
-			},
-			credentials: 'include',
-		});
-
-		if (response.ok) {
-			toast.success("Created new note.");
-			return response.json();
-		}
-
-	} catch (err) {
-		console.log(err);
-	}
-}
-
 export default function DocumentPage() {
 
 	const queryClient = useQueryClient();
 
 	const { mutate } = useMutation({
 		mutationFn: createDocument,
+		onError: () => {
+			toast.error("Failed to create new note.")
+		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({
 				queryKey: ["documents"]
 			});
+			toast.success("Created new note.")
 		},
 	});
 

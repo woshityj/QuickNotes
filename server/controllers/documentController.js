@@ -19,9 +19,22 @@ export async function createDocument(req, res) {
 
 export async function getDocuments(req, res) {
     try {
+        let parentDocumentId = req.params.parentDocumentId;
+
         const userId = await getUserId(req.headers['authorization']);
 
-        let documents = await DocumentItem.find({ userId: userId }).exec();
+        let conditions = [];
+        if (!!parentDocumentId) {
+            conditions.push({ parentDocument: parentDocumentId });
+        }
+        conditions.push({ userId: userId });
+        conditions.push({ isArchived: false })
+
+        let finalCondition = conditions.length ? { $and: conditions } : {};
+
+        let documents = await DocumentItem
+            .find(finalCondition)
+            .exec();
 
         res.status(200).send(documents);
     } catch(err) {

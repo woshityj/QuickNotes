@@ -6,6 +6,6 @@ const router = express.Router();
 // router.get('/', getDocuments);
 // router.get('/:id', getDocument);
 router.post('/', createDocument);
-router.get('/', getDocuments);
+router.get('/:parentDocumentId?', getDocuments);
 
 export default router;

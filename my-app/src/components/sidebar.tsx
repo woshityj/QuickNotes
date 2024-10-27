@@ -11,7 +11,7 @@ import searchIcon from "../../public/static/images/search_icon.png";
 
 import downArrow from "../../public/static/images/down_arrow.png";
 
-import { Bot, ChevronRight, ChevronsLeft, Home, Inbox, MenuIcon, Search } from "lucide-react";
+import { Bot, ChevronRight, ChevronsLeft, Home, Inbox, MenuIcon, PlusCircle, Search, Settings } from "lucide-react";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { usePathname } from "next/navigation";
@@ -20,7 +20,11 @@ import UserItem from "./user_item";
 import Notes from "./notes";
 import Link from "next/link";
 import { backendURL } from "@/app/utils/constants";
-import { useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { Item } from "./item";
+import { createDocument, Document, getDocuments } from "@/app/services/documentServices";
+import { toast } from "sonner";
+import { DocumentList } from "./document_list";
 
 type User = {
     id: string;
@@ -28,39 +32,6 @@ type User = {
     email: string;
 };
 
-type Document = {
-    _id: string,
-    title: string,
-    userId: string,
-    isArchived: boolean,
-    parentDocument: string,
-    content: string,
-    coverImage: string,
-    icon: string,
-    isPublished: boolean
-}
-
-
-const getDocuments = async () => {
-    try {
-        const response = await fetch(`${backendURL}/documents`, {
-            method: "GET",
-            headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-                "authorization": localStorage.getItem("AuthorizationToken") || "",
-            },
-            credentials: 'include',
-        });
-
-        if (response.ok) {
-            // setDocuments(await response.json());
-            return response.json();
-        }
-    } catch (err) {
-        console.log(err);
-    }
-}
 
 export default function SideBar({ currentUser }: { currentUser: User}) {
     const pathName = usePathname();
@@ -72,9 +43,24 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
     const [isResetting, setIsResetting] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(isMobile);
 
+    const queryClient = useQueryClient();
+
     const { data, status } = useQuery({
         queryKey: ["documents"],
-        queryFn: getDocuments
+        queryFn: () => getDocuments()
+    });
+
+    const { mutate } = useMutation({
+        mutationFn: createDocument,
+		onError: () => {
+			toast.error("Failed to create new note.")
+		},
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["documents"]
+            });
+            toast.success("Created new note.")
+        },
     });
  
     useEffect(() => {
@@ -85,30 +71,6 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
             resetWidth();
         }
     }, [isMobile]);
-
-    // useEffect(() => {
-    //     async function getDocuments() {
-    //         try {
-    //             const response = await fetch(`${backendURL}/documents`, {
-    //                 method: "GET",
-    //                 headers: {
-    //                     Accept: "application/json",
-    //                     "Content-Type": "application/json",
-    //                     "authorization": localStorage.getItem("AuthorizationToken") || "",
-    //                 },
-    //                 credentials: 'include',
-    //             });
-    
-    //             if (response.ok) {
-    //                 setDocuments(await response.json());
-    //             }
-    //         } catch (err) {
-    //             console.log(err);
-    //         }
-    //     }
-
-    //     getDocuments();
-    // }, []);
 
     useEffect(() => {
         if (isMobile) {
@@ -172,6 +134,10 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
         }
     }
 
+    const handleCreateNewDocument = () => {
+        mutate();
+    }
+
     return (
         <>
             <aside
@@ -193,6 +159,12 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
                 </div>
                 <div>
                     <UserItem currentUser={currentUser} />
+                    <Item label="Search" icon={Search} isSearch onClick={() => {}} />
+                    <Item label="Settings" icon={Settings} isSearch onClick={() => {}} />
+                    <Item onClick={handleCreateNewDocument}  label="New page" icon={PlusCircle} />
+                </div>
+                <div className="mt-4">
+                    <DocumentList />
                 </div>
                 <div className="px-3 py-2">
                     <div className="flex items-center py-1">
@@ -221,23 +193,8 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
                 </div>
 
                 <div className="p-3">
-                <div>
-                    <span className="font-inter text-[#91918E] text-xs leading-[0.75rem]">Notes</span>
-                </div>
                     <div>
-                        {data?.map((Document: Document) => (
-                            <div key={ Document._id } className="flex items-center justify-between px-2 py-[0.313rem]">
-                                <div role="button" className="flex items-center">
-                                    <ChevronRight className={cn("h-[1.063rem] w-[0.938rem] mr-2 transition-all ease-linear")} />
-                                    <p className="font-medium text-sm text-[#5F5E5B]">{ Document.title }</p>
-                                </div>
-                            </div>
-
-                            // <p key={Document._id}>
-                            //     {Document.title}
-                            // </p>
-                            // <Folder key={Document._id} folderId={data._id} name={data.name} documents={data.documents} />
-                        ))}
+                        <span className="font-inter text-[#91918E] text-xs leading-[0.75rem]">Notes</span>
                     </div>
                 </div>
 
