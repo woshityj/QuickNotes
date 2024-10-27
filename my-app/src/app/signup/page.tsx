@@ -26,16 +26,19 @@ export default function SignUp() {
     const handleSignUp = async (e: React.ChangeEvent<any>) => {
         e.preventDefault();
 
+        // Check if Name, Email, Password, and Confirm Password is not null
         if (signUpData.name.length === 0 || signUpData.email.length === 0 || signUpData.password.length === 0 || signUpData.confirmPassword.length === 0) 
         {
             toast.error("Form is incomplete");
             return null;
         }
 
+        // Check if Password matches Confirm Password
         if (signUpData.password != signUpData.confirmPassword) {
             toast.error("Password and Confirm Password does not match");
             return null;
         }
+        
 
         try {
             const response = await fetch(`${backendURL}/users/register`, {
@@ -48,12 +51,20 @@ export default function SignUp() {
             });
 
             if (response.ok) {
-                toast.success("Account has been created");
-                setInterval(() => {
+                toast.success("Account has been created.");
+
+                const signupRedirectTimer = setTimeout(() => {
                     router.push("/login");
                 }, 2000);
+
+                return () => clearTimeout(signupRedirectTimer);
+            // Validation based on if Email exists in the database
+            } else {
+                const errMessage = await response.json();
+                toast.error(errMessage.msg);
             }
         } catch (err) {
+            toast.error("Failed to create an account.");
             console.log(err);
         }
     };
@@ -109,7 +120,6 @@ export default function SignUp() {
                         <button onClick={handleSignUp} className="w-full font-inter text-[0.875rem] min-h-9 leading-[0.875rem] text-white font-medium bg-[#0582FF] py-[0.406rem] px-[0.75rem] rounded-md">
                             Sign up here
                         </button>
-                        <Toaster position="bottom-center" />
                     </form>
                 </div>
             </div>

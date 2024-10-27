@@ -1,10 +1,11 @@
 import express from "express";
-import { addNewDocument } from "../controllers/documentController.js";
+import { createDocument, getDocuments, getUserDocuments } from "../controllers/documentController.js";
 
 const router = express.Router();
 
-router.route("/")
-    .get((req, res) => res.send("GET request successful"))
-    .post(addNewDocument);
+// router.get('/', getDocuments);
+// router.get('/:id', getDocument);
+router.post('/', createDocument);
+router.get('/', getDocuments);
 
 export default router;

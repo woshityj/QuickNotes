@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import NavBar from "../../components/navbar";
+import { useCookies } from "next-client-cookies";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast, Toaster } from "sonner";
@@ -11,11 +12,13 @@ import { cookies } from "next/headers";
 export default function Login() {
 
     const router = useRouter();
+    const cookies = useCookies();
 
     const [loginData, setLoginData] = useState({
         email: "",
         password: ""
     });
+
 
     const handleInput = (e: React.ChangeEvent<any>) => {
         setLoginData({ ...loginData, [`${e.target.name}`] : e.target.value });
@@ -37,11 +40,24 @@ export default function Login() {
                     Accept: "application/json",
                     "Content-Type": "application/json",
                 },
+                credentials: 'include'
             });
 
             if (response.ok) {
                 toast.success("Successfully logged in");
-                console.log(response.headers.get('refreshToken'));
+                let authorizationToken = response.headers.get('Authorization') || "";
+                localStorage.setItem('AuthorizationToken', authorizationToken);
+
+                const loginRedirectTimer = setTimeout(() => {
+                    router.push("/");
+                    router.refresh();
+                }, 2000);
+
+                return () => clearTimeout(loginRedirectTimer);
+            }
+
+            if (response.status == 400) {
+                toast.error("Invalid Email or Password. Please try again!");
             }
         } catch (err) {
             toast.error("Server failed to login");
@@ -89,7 +105,6 @@ export default function Login() {
                         <button onClick={handleLogin} className="w-full font-inter text-[0.875rem] min-h-9 leading-[0.875rem] text-white font-medium bg-[#0582FF] py-[0.406rem] px-[0.75rem] rounded-md">
                             Login
                         </button>
-                        <Toaster position="bottom-center" />
                     </form>
                 </div>
             </div>

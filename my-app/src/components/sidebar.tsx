@@ -11,15 +11,58 @@ import searchIcon from "../../public/static/images/search_icon.png";
 
 import downArrow from "../../public/static/images/down_arrow.png";
 
-import { Bot, ChevronsLeft, Home, Inbox, MenuIcon, Search } from "lucide-react";
+import { Bot, ChevronRight, ChevronsLeft, Home, Inbox, MenuIcon, Search } from "lucide-react";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import UserItem from "./user_item";
 import Notes from "./notes";
+import Link from "next/link";
+import { backendURL } from "@/app/utils/constants";
+import { useQuery } from "react-query";
 
-export default function SideBar() {
+type User = {
+    id: string;
+    name: string;
+    email: string;
+};
+
+type Document = {
+    _id: string,
+    title: string,
+    userId: string,
+    isArchived: boolean,
+    parentDocument: string,
+    content: string,
+    coverImage: string,
+    icon: string,
+    isPublished: boolean
+}
+
+
+const getDocuments = async () => {
+    try {
+        const response = await fetch(`${backendURL}/documents`, {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "authorization": localStorage.getItem("AuthorizationToken") || "",
+            },
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            // setDocuments(await response.json());
+            return response.json();
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+export default function SideBar({ currentUser }: { currentUser: User}) {
     const pathName = usePathname();
     const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -29,6 +72,11 @@ export default function SideBar() {
     const [isResetting, setIsResetting] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(isMobile);
 
+    const { data, status } = useQuery({
+        queryKey: ["documents"],
+        queryFn: getDocuments
+    });
+ 
     useEffect(() => {
         if (isMobile) {
             collapse();
@@ -38,11 +86,35 @@ export default function SideBar() {
         }
     }, [isMobile]);
 
+    // useEffect(() => {
+    //     async function getDocuments() {
+    //         try {
+    //             const response = await fetch(`${backendURL}/documents`, {
+    //                 method: "GET",
+    //                 headers: {
+    //                     Accept: "application/json",
+    //                     "Content-Type": "application/json",
+    //                     "authorization": localStorage.getItem("AuthorizationToken") || "",
+    //                 },
+    //                 credentials: 'include',
+    //             });
+    
+    //             if (response.ok) {
+    //                 setDocuments(await response.json());
+    //             }
+    //         } catch (err) {
+    //             console.log(err);
+    //         }
+    //     }
+
+    //     getDocuments();
+    // }, []);
+
     useEffect(() => {
         if (isMobile) {
             collapse();
         }
-    }, [pathName, isMobile])
+    }, [pathName, isMobile]);
 
     const handleMouseDown = (
         event: React.MouseEvent<HTMLDivElement, MouseEvent>
@@ -120,7 +192,7 @@ export default function SideBar() {
                     <ChevronsLeft className="h-6 w-6" />
                 </div>
                 <div>
-                    <UserItem />
+                    <UserItem currentUser={currentUser} />
                 </div>
                 <div className="px-3 py-2">
                     <div className="flex items-center py-1">
@@ -133,7 +205,7 @@ export default function SideBar() {
                     </div>
                     <div className="flex items-center py-1">
                         <Home className="w-5 h-5 mr-2" />
-                        <p className="font-inter font-medium text-sm leading-[1.313rem] text-[#5F5E5B]">Home</p>
+                        <Link href="/documents" className="font-inter font-medium text-sm leading-[1.313rem] text-[#5F5E5B]">Home</Link>
                     </div>
                     <div className="flex items-center py-1">
                         <Inbox className="w-5 h-5 mr-2" />
@@ -148,7 +220,27 @@ export default function SideBar() {
 
                 </div>
 
-                <Notes />
+                <div className="p-3">
+                <div>
+                    <span className="font-inter text-[#91918E] text-xs leading-[0.75rem]">Notes</span>
+                </div>
+                    <div>
+                        {data?.map((Document: Document) => (
+                            <div key={ Document._id } className="flex items-center justify-between px-2 py-[0.313rem]">
+                                <div role="button" className="flex items-center">
+                                    <ChevronRight className={cn("h-[1.063rem] w-[0.938rem] mr-2 transition-all ease-linear")} />
+                                    <p className="font-medium text-sm text-[#5F5E5B]">{ Document.title }</p>
+                                </div>
+                            </div>
+
+                            // <p key={Document._id}>
+                            //     {Document.title}
+                            // </p>
+                            // <Folder key={Document._id} folderId={data._id} name={data.name} documents={data.documents} />
+                        ))}
+                    </div>
+                </div>
+
             </aside>
 
             <div

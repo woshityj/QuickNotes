@@ -1,22 +1,34 @@
 import express from "express";
 import cors from "cors";
+
 import foldersRouter from "./routes/folders.js";
 import usersRouter from "./routes/users.js";
+import documentsRouter from "./routes/document.js";
+
 import mongoose from "mongoose";
+import cookieParser from "cookie-parser";
 
 const PORT = process.env.PORT || 5050;
 const app = express();
 const mongoURI = process.env.ATLAS_URI || "";
 
-app.use(cors({credentials: true, origin: 'http://localhost:3000'}));
+const corsOptions = {
+    origin: "http://localhost:3000",
+    credentials: true,
+    exposedHeaders: ['Authorization']
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 
 mongoose.connect(mongoURI)
         .then(() => console.log("MongoDB Connected."))
         .catch(err => console.error(err));
 
+app.use(cookieParser());
 app.use("/folders", foldersRouter);
 app.use("/users", usersRouter);
+app.use("/documents", documentsRouter);
 
 // start the Express server
 app.listen(PORT, () => {

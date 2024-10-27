@@ -5,6 +5,47 @@ import bcrypt from "bcryptjs/dist/bcrypt.js";
 
 const jwtToken = process.env.jwtSecret || "";
 
+export async function getUserId(authorizationToken) {
+    try {
+        const decoded = jwt.verify(authorizationToken, jwtToken);
+
+        const userId = decoded.user.id;
+
+        let user = await UserItem.findOne({ _id: userId });
+
+        if (!user) {
+            return res.status(400).json({ msg: "Failed to get user."});
+        }
+
+        return user;
+    } catch (err) {
+        console.log(err.message);
+        res.status(500).send('Server Error');
+    }
+}
+
+export async function getUser(req, res) {
+    const authorizationToken = req.headers['authorization'];
+
+    try {
+        const decoded = jwt.verify(authorizationToken, jwtToken);
+        console.log(decoded);
+        const userId = decoded.user.id;
+        console.log(userId);
+
+        let user = await UserItem.findOne({ _id: userId });
+
+        if (!user) {            
+            return res.status(400).json({ msg: "Failed to get user."});
+        }
+
+        res.send(user);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+}
+
 export async function registerUser(req, res) {
     const { name, email, password } = req.body;
 
@@ -59,10 +100,10 @@ export async function loginUser(req, res) {
             }
         };
 
-        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: '1h' });
+        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: 15 });
         const refreshToken = jwt.sign(payload, jwtToken, { expiresIn: '1d' });
 
-        res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'strict' })
+        res.cookie('refreshToken', refreshToken, { httpOnly: false, sameSite: 'Lax', secure: false })
             .header('Authorization', accessToken)
             .send(user);
     } catch (err) {
@@ -79,8 +120,15 @@ export async function refreshToken(req, res) {
     }
 
     try {
+
         const decoded = jwt.verify(refreshToken, jwtToken);
-        const accessToken = jwt.sign({ user: decoded.user }, jwtToken, { expiresIn: '1h' });
+        console.log(decoded.user.id);
+        const payload = {
+            user: {
+                id: decoded.user.id
+            }
+        };
+        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: '1h' });
 
         res.header('Authorization', accessToken)
             .send(decoded.user);

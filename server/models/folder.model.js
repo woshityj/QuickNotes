@@ -14,16 +14,13 @@ const FolderSchema = new Schema({
     },
     parentFolder: {
         type: Schema.Types.ObjectId,
-        ref: "Folder",
+        ref: "folders",
         required: false,
     },
     documents: [
         {
-            document: {
-                name : { type: String, required: true },
-                content: { type: String, required: true },
-                isPublished: { type: Boolean, required: true, default: false }
-            }
+            type: Schema.Types.ObjectId,
+            ref: "documents",
         }
     ],
 });
