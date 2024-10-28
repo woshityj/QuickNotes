@@ -135,7 +135,7 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
     }
 
     const handleCreateNewDocument = () => {
-        mutate();
+        mutate({});
     }
 
     return (

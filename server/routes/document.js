@@ -1,5 +1,5 @@
 import express from "express";
-import { createDocument, getDocuments, getUserDocuments } from "../controllers/documentController.js";
+import { archiveDocument, createDocument, getDocuments, getUserDocuments } from "../controllers/documentController.js";
 
 const router = express.Router();
 
@@ -7,5 +7,6 @@ const router = express.Router();
 // router.get('/:id', getDocument);
 router.post('/', createDocument);
 router.get('/:parentDocumentId?', getDocuments);
+router.put('/:id', archiveDocument);
 
 export default router;

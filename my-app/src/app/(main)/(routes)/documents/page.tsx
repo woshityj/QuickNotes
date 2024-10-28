@@ -31,7 +31,7 @@ export default function DocumentPage() {
 	function handleCreateNewDocument(e: FormEvent) {
 		e.preventDefault();
 		
-		mutate();
+		mutate({});
 	}
 
 	return (

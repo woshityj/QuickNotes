@@ -13,7 +13,7 @@ export type Document = {
     isPublished: boolean
 };
 
-export async function createDocument() {
+export async function createDocument({parentDocumentId}: {parentDocumentId?: string}) {
 	try {
 		const response = await fetch(`${backendURL}/documents/`, {
 			method: "POST",
@@ -22,6 +22,7 @@ export async function createDocument() {
 				"Content-Type": "application/json",
 				"Authorization": localStorage.getItem("AuthorizationToken") || "",
 			},
+            body: JSON.stringify({ parentDocument: parentDocumentId }),
 			credentials: 'include',
 		});
 
@@ -52,6 +53,29 @@ export async function getDocuments(parentDocumentId?: string) {
             // setDocuments(await response.json());
             return response.json();
         }
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+export async function archiveDocument({id}: {id: string}) {
+    try {
+        
+        const response = await fetch(`${backendURL}/documents/${id}`, {
+            method: "PUT",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "authorization": localStorage.getItem("AuthorizationToken") || ""
+            },
+            credentials: 'include',
+            body: JSON.stringify({ id: id }),
+        });
+
+        if (response.ok) {
+            return response.json();
+        }
+
     } catch (err) {
         console.log(err);
     }

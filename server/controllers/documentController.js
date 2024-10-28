@@ -3,9 +3,11 @@ import { getUserId } from "./userController.js";
 
 export async function createDocument(req, res) {
     try {
+        const parentDocument = req.body['parentDocument'];
+
         const userId = await getUserId(req.headers['authorization']);
 
-        let document = new DocumentItem({ userId: userId });
+        let document = new DocumentItem({ userId: userId, parentDocument: parentDocument });
         
         await document.save();
 
@@ -39,6 +41,33 @@ export async function getDocuments(req, res) {
         res.status(200).send(documents);
     } catch(err) {
         console.log(err.message);
+        res.status(500).send("Server Error");
+    }
+}
+
+export async function archiveDocument(req, res) {
+    try {
+        const id = req.body['id'];
+
+        const userId = await getUserId(req.headers['authorization']);
+
+        const recursiveArchive = async (documentId) => {
+            await DocumentItem.updateMany({ userId: userId, parentDocument: documentId }, {$set: { isArchived: true }});
+
+            const children = await DocumentItem.find({ userId: userId, parentDocument: documentId });
+
+            for (const child of children) {
+                await recursiveArchive(child._id);
+            }
+        }
+
+        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$set: { isArchived: true }});
+
+        recursiveArchive(document._id);
+        
+        res.status(200).send(document);
+    } catch (err) {
+        console.log(err);
         res.status(500).send("Server Error");
     }
 }
