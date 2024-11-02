@@ -2,12 +2,10 @@ import { Toaster } from "sonner";
 import { CookiesProvider } from "next-client-cookies/server";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
 import { jwtDecode } from "jwt-decode";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { QueryClientProvider } from "react-query";
-import { ReactQueryClientProvider } from "@/components/reactQueryClientProvider";
+import ReactQueryClientProvider from "@/components/reactQueryClientProvider";
+import ModalProvider from "@/components/providers/modal-provider";
+import "./globals.css";
 
 const geistSans = localFont({
 	src: "./fonts/GeistVF.woff",
@@ -48,17 +46,18 @@ export default function RootLayout({
 }>) {
 
 	return (
-		<ReactQueryClientProvider>
 		<html lang="en">
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
 				<CookiesProvider>
+				<ReactQueryClientProvider>
 					{children}
+				</ReactQueryClientProvider>
 				</CookiesProvider>
 				<Toaster position="bottom-center" />
+				<ModalProvider />
 			</body>
 		</html>
-		</ReactQueryClientProvider>
 	);
 }

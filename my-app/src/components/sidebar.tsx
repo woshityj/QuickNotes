@@ -11,20 +11,25 @@ import searchIcon from "../../public/static/images/search_icon.png";
 
 import downArrow from "../../public/static/images/down_arrow.png";
 
-import { Bot, ChevronRight, ChevronsLeft, Home, Inbox, MenuIcon, PlusCircle, Search, Settings } from "lucide-react";
+import { Bot, ChevronRight, ChevronsLeft, Home, Inbox, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import UserItem from "./user_item";
 import Notes from "./notes";
 import Link from "next/link";
 import { backendURL } from "@/app/utils/constants";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Item } from "./item";
 import { createDocument, Document, getDocuments } from "@/app/services/documentServices";
 import { toast } from "sonner";
 import { DocumentList } from "./document_list";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import TrashBox from "./trashbox";
+import { useSearch } from "@/hooks/use-search";
+import { useSettings } from "@/hooks/use-settings";
+import SecondaryNavbar from "./secondary-navbar";
 
 type User = {
     id: string;
@@ -34,9 +39,13 @@ type User = {
 
 
 export default function SideBar({ currentUser }: { currentUser: User}) {
+    const params = useParams();
     const pathName = usePathname();
     const isMobile = useMediaQuery("(max-width: 768px)");
 
+    const search = useSearch();
+    const settings = useSettings();
+    
     const isResizingRef = useRef(false);
     const sidebarRef = useRef<ElementRef<"aside">>(null);
     const navbarRef = useRef<ElementRef<"div">>(null);
@@ -45,23 +54,21 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
 
     const queryClient = useQueryClient();
 
-    const { data, status } = useQuery({
-        queryKey: ["documents"],
-        queryFn: () => getDocuments()
-    });
-
-    const { mutate } = useMutation({
+    // Mutation to Create New Document
+    const createDocumentMutate = useMutation({
         mutationFn: createDocument,
 		onError: () => {
 			toast.error("Failed to create new note.")
 		},
         onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["documents"]
-            });
-            toast.success("Created new note.")
+            queryClient.invalidateQueries({ queryKey: ["documents"] });
+            toast.success("Created new note.");
         },
     });
+
+    const handleCreateNewDocument = () => {
+        createDocumentMutate.mutate({});
+    }
  
     useEffect(() => {
         if (isMobile) {
@@ -134,16 +141,12 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
         }
     }
 
-    const handleCreateNewDocument = () => {
-        mutate({});
-    }
-
     return (
         <>
             <aside
                 ref={sidebarRef}
                 className={cn(
-                    "group/sidebar h-full bg-[#F7F7F5] overflow-y-auto relative flex w-60 flex-col z-[99999]",
+                    "group/sidebar h-full bg-[#F7F7F5] overflow-y-auto relative flex w-60 flex-col z-[999]",
                     isResetting && "transition-all ease-in-out duration-300",
                     isMobile && "w-0"
                 )}
@@ -159,12 +162,28 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
                 </div>
                 <div>
                     <UserItem currentUser={currentUser} />
-                    <Item label="Search" icon={Search} isSearch onClick={() => {}} />
-                    <Item label="Settings" icon={Settings} isSearch onClick={() => {}} />
+                    <Item label="Search" icon={Search} isSearch onClick={search.onOpen} />
+                    <Item label="Settings" icon={Settings} onClick={settings.onOpen} />
                     <Item onClick={handleCreateNewDocument}  label="New page" icon={PlusCircle} />
                 </div>
                 <div className="mt-4">
                     <DocumentList />
+                    <Item 
+                        onClick={handleCreateNewDocument}
+                        icon={Plus}
+                        label="Add a page"
+                     />
+                     <Popover>
+                        <PopoverTrigger className="w-full mt-4">
+                            <Item label="Trash" icon={Trash} />
+                        </PopoverTrigger>
+                        <PopoverContent
+                            className="p-0 w-72"
+                            side={isMobile ? "bottom" : "right"} 
+                        >
+                            <TrashBox />
+                        </PopoverContent>
+                     </Popover>
                 </div>
                 <div className="px-3 py-2">
                     <div className="flex items-center py-1">
@@ -208,9 +227,17 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
                     isMobile && "left-0 w-full"
                 )}
             >
-                <nav className="bg-transparent px-3 py-2 w-full">
-                    {isCollapsed && <MenuIcon onClick={resetWidth} role="button" className="h-6 w-6" />}
-                </nav>
+                {!!params.documentId ? (
+                    <SecondaryNavbar 
+                        isCollapsed={isCollapsed}
+                        onResetWidth={resetWidth}
+                    />
+                ) : (
+                    <nav className="bg-transparent px-3 py-2 w-full">
+                        {isCollapsed && <MenuIcon onClick={resetWidth} role="button" className="h-6 w-6 text-muted-foreground" />}
+                    </nav>
+                )}
+
             </div>
         </>
 

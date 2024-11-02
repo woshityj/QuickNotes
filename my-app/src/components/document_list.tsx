@@ -3,7 +3,7 @@
 import { Document, getDocuments } from "@/app/services/documentServices";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Item } from "./item";
 import { cn } from "@/lib/utils";
 import { FileIcon } from "lucide-react";

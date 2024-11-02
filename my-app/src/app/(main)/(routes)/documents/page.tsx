@@ -8,22 +8,20 @@ import { PlusCircle } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect } from "react";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function DocumentPage() {
 
 	const queryClient = useQueryClient();
 
-	const { mutate } = useMutation({
+	const createDocumentMutate = useMutation({
 		mutationFn: createDocument,
 		onError: () => {
 			toast.error("Failed to create new note.")
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({
-				queryKey: ["documents"]
-			});
+			queryClient.invalidateQueries({ queryKey: ["documents"] });
 			toast.success("Created new note.")
 		},
 	});
@@ -31,7 +29,7 @@ export default function DocumentPage() {
 	function handleCreateNewDocument(e: FormEvent) {
 		e.preventDefault();
 		
-		mutate({});
+		createDocumentMutate.mutate({});
 	}
 
 	return (

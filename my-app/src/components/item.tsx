@@ -3,17 +3,10 @@
 import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronRight, LucideIcon, MoreHorizontal, Plus, Trash } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { archiveDocument, createDocument } from "@/app/services/documentServices";
 import { toast } from "sonner";
-import { 
-    DropdownMenu,
-    DropdownMenuTrigger,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuPortal
- } from "@radix-ui/react-dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuSeparator } from "./ui/dropdown-menu";
 
 interface ItemProps {
     id?: string,
@@ -24,7 +17,7 @@ interface ItemProps {
     level?: number,
     onExpand?: () => void,
     label: string;
-    onClick: () => void;
+    onClick?: () => void;
     icon: LucideIcon;
 };
 
@@ -67,7 +60,7 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
 		},
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ["archiveDocument"]
+                queryKey: ["documents"]
             });
             toast.success("Archived document.")
         },
@@ -77,7 +70,7 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
         event.stopPropagation();
         if (!id) return;
 
-        archiveDocumentMutate.mutate({ id: id });
+        archiveDocumentMutate.mutateAsync({ id: id });
     }
 
     const ChevronIcon = expanded ? ChevronDown : ChevronRight;
@@ -95,7 +88,7 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
             {!!id && (
                 <div 
                     role="button" 
-                    className="h-full rounded-sm hover:bg-neutral-300 dark:bg-neutral-600 mr-1"
+                    className="h-full rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 mr-1"
                     onClick={handleExpand}>
                     <ChevronIcon
                         className="h-4 w-4 shrink-0 text-muted-foreground/50"
@@ -132,23 +125,21 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
                                 <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                             </div>
                         </DropdownMenuTrigger>
-                        <DropdownMenuPortal>
-                            <DropdownMenuContent
-                                className="w-60 bg-white z-[99999]"
-                                align="start"
-                                side="right"
-                                forceMount
-                            >
-                                <DropdownMenuItem onClick={onArchive}>
-                                    <Trash className="h-4 w-4 mr-2" />
-                                    Delete
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <div className="text-xs text-muted-foreground p-2">
-                                    Last edited by: 
-                                </div>
-                            </DropdownMenuContent>
-                        </DropdownMenuPortal>
+                        <DropdownMenuContent
+                            className="w-60 bg-white z-[99999]"
+                            align="start"
+                            side="right"
+                            forceMount
+                        >
+                            <DropdownMenuItem onClick={onArchive}>
+                                <Trash className="h-4 w-4 mr-2" />
+                                Delete
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <div className="text-xs text-muted-foreground p-2">
+                                Last edited by: 
+                            </div>
+                        </DropdownMenuContent>
                     </DropdownMenu>
                     <div
                         role="button"
