@@ -5,7 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { backendURL } from "../utils/constants";
-// import SearchCommand from "@/components/search-command";
+import SearchCommand from "@/components/search-command";
 
 type User = {
     id: string;
@@ -105,7 +105,7 @@ export default function MainLayout({ children } : { children: React.ReactNode; }
             <SideBar currentUser={currentUser} />
 
             <main className="flex-1 h-full overflow-y-auto">
-                {/* <SearchCommand /> */}
+                <SearchCommand />
                 {children}
             </main>
         </div>

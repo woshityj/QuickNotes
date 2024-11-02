@@ -39,7 +39,6 @@ export default function SecondaryNavbar({isCollapsed, onResetWidth}: NavbarProps
                         className="h-6 w-6 text-muted-foreground"
                     />
                 )}                    
-                <span>{getDocumentMutate.data.title}</span>
                 <div className="flex items-center justify-between w-full">
                     <Title initialData={getDocumentMutate.data} />
                 </div>

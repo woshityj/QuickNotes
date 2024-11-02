@@ -1,16 +1,5 @@
 "use client";
 
-import Image from "next/image";
-
-import aiIcon from "../../public/static/images/ai_icon.png";
-import createIcon from "../../public/static/images/create_icon.png";
-import profileIcon from "../../public/static/images/profile_icon.png";
-import homeIcon from "../../public/static/images/home_icon.png";
-import inboxIcon from "../../public/static/images/inbox_icon.png";
-import searchIcon from "../../public/static/images/search_icon.png";
-
-import downArrow from "../../public/static/images/down_arrow.png";
-
 import { Bot, ChevronRight, ChevronsLeft, Home, Inbox, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";

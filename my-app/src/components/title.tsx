@@ -26,42 +26,9 @@ export default function Title({initialData}: TitleProps) {
         mutationFn: updateDocument,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["document", "detail", initialData._id] });
+            queryClient.invalidateQueries({ queryKey: ["documents"] });
         }
     })
-
-    // const updateDocumentMutate = useMutation({
-    //     mutationFn: updateDocument,
-        // onMutate: async (newDocument) => {
-        //     // Cancel any outgoing refetches
-        //     await queryClient.cancelQueries(["documentDetail", initialData._id]);
-
-        //     // Snapshot the previous value
-        //     const previousDocument = queryClient.getQueryData<Document>(["documentDetail", initialData._id]);
-
-        //     // Optimistically update to the new value
-        //     queryClient.setQueryData(["documentDetail", initialData._id], {
-        //         ...previousDocument,
-        //         title: newDocument.title // Update the title optimistically
-        //     });
-        //     console.log(queryClient.getQueryData(["documentDetail", initialData._id]));
-
-        //     return { previousDocument }; // Return context for onError
-        // },
-        // onSuccess: () => {
-            // const previousDocument = queryClient.getQueryData<Document>(["documents", "detail", initialData._id]);
-
-            // queryClient.setQueryData(["documents", "detail", initialData._id], {
-            //     ...previousDocument,
-            //     title: title // Update the title optimistically
-            // });
-            // queryClient.invalidateQueries(["documentDetail", initialData._id]);
-            // queryClient.setQueryData(["documentDetail", initialData._id], data);
-            // queryClient.removeQueries(["documentDetail", initialData._id]);
-
-            // queryClient.invalidateQueries(["documentDetail", initialData._id]);
-            // console.log(queryClient.getQueryCache().getAll());
-    //     }
-    // })
 
     const enableInput = () => {
         setIsEditting(true);
