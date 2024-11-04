@@ -1,10 +1,11 @@
 "use client";
 
-import { getDocument } from "@/app/services/documentServices";
+import { getDocument, updateDocument } from "@/app/services/documentServices";
 import Cover from "@/components/cover";
+import Editor from "@/components/editor";
 import Toolbar from "@/components/toolbar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface DocumentIdPageProps {
     params: {
@@ -14,10 +15,31 @@ interface DocumentIdPageProps {
 
 export default function DocumentIdPage({ params }: DocumentIdPageProps) {
 
+    const queryClient = useQueryClient();
+
     const getDocumentMutate = useQuery({
         queryKey: ["document", "detail", params.documentId],
         queryFn: () => getDocument(params.documentId),
     });
+
+    const updateDocumentMutate = useMutation({
+        mutationFn: updateDocument,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["document", "detail", params.documentId] });
+        }
+    })
+
+    const onChange = (content: string) => {
+        updateDocumentMutate.mutate({
+            _id: params.documentId,
+            content: content
+        });
+    }
+
+    let Editor;
+    if (typeof window !== 'undefined') {
+        Editor = require('@/components/editor').default;
+    }
 
     if (getDocumentMutate.isLoading) {
         return (
@@ -44,6 +66,12 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
             <Cover url={getDocumentMutate.data.coverImage} />                
             <div className="md:max-w-3xl lg:max-w-4xl mx-auto">
                 <Toolbar initialData={getDocumentMutate.data} />
+                {Editor && 
+                <Editor
+                    onChange={onChange}
+                    initialContent={getDocumentMutate.data.content}
+                />
+                }
             </div>
         </div>
     );
