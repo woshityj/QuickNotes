@@ -208,3 +208,43 @@ export async function updateDocument({_id, title, content, coverImage, icon, isP
         console.log(err);
     }
 }
+
+export async function removeDocumentIcon({_id}: {_id: string}) {
+    try {
+        const response = await fetch(`${backendURL}/documents/remove-document-icon/${_id}`, {
+            method: "PUT",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "authorization": localStorage.getItem("AuthorizationToken") || ""
+            },
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            response.json();
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+export async function removeDocumentCoverImage({_id}: {_id: string}) {
+    try {
+        const response = await fetch(`${backendURL}/documents/remove-document-cover-image/${_id}`, {
+            method: "PUT",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "authorization": localStorage.getItem("AuthorizationToken") || ""
+            },
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            response.json();
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}

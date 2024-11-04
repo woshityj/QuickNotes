@@ -219,11 +219,41 @@ export async function getUserDocuments(req, res) {
 
 export async function searchDocuments(req, res) {
     try {
-        const userId = await getUserId(req.headers['authorization'])   ;
+        const userId = await getUserId(req.headers['authorization']);
 
         let documents = await DocumentItem.find({ userId: userId, isArchived: false });
 
         res.status(200).send(documents);
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("Server Error");
+    }
+}
+
+export async function removeDocumentIcon(req, res) {
+    try {
+        const id = req.params.id;
+
+        const userId = await getUserId(req.headers['authorization']);
+
+        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$unset: {icon: ""}});
+        
+        res.status(200).send(document);
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("Server Error");
+    }
+}
+
+export async function removeDocumentCoverImage(req, res) {
+    try {
+        const id = req.params.id;
+
+        const userId = await getUserId(req.headers['authorization']);
+
+        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$unset: {coverImage: ""}});
+
+        res.status(200).send(document);
     } catch (err) {
         console.log(err);
         res.status(500).send("Server Error");

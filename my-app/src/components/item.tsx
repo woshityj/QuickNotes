@@ -62,6 +62,7 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
             queryClient.invalidateQueries({
                 queryKey: ["documents"]
             });
+            queryClient.invalidateQueries({ queryKey: ["document", "detail", id] });
             toast.success("Archived document.")
         },
     })
@@ -70,7 +71,7 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
         event.stopPropagation();
         if (!id) return;
 
-        archiveDocumentMutate.mutateAsync({ id: id });
+        archiveDocumentMutate.mutate({ id: id });
     }
 
     const ChevronIcon = expanded ? ChevronDown : ChevronRight;

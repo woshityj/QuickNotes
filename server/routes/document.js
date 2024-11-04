@@ -1,5 +1,5 @@
 import express from "express";
-import { archiveDocument, createDocument, getArchivedDocuments, getDocument, getDocuments, getUserDocuments, removeDocument, restoreDocument, searchDocuments, updateDocument } from "../controllers/documentController.js";
+import { archiveDocument, createDocument, getArchivedDocuments, getDocument, getDocuments, getUserDocuments, removeDocument, removeDocumentCoverImage, removeDocumentIcon, restoreDocument, searchDocuments, updateDocument } from "../controllers/documentController.js";
 
 const router = express.Router();
 
@@ -13,6 +13,9 @@ router.delete('/archived-documents/:id', removeDocument);
 router.get('/search', searchDocuments);
 router.get('/document/:id', getDocument);
 router.put('/document/:id', updateDocument);
+
+router.put('/remove-document-icon/:id', removeDocumentIcon);
+router.put('/remove-document-cover-image/:id', removeDocumentCoverImage);
 
 router.post('/', createDocument);
 router.get('/:parentDocumentId?', getDocuments);

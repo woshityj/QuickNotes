@@ -5,6 +5,7 @@ import localFont from "next/font/local";
 import { jwtDecode } from "jwt-decode";
 import ReactQueryClientProvider from "@/components/reactQueryClientProvider";
 import ModalProvider from "@/components/providers/modal-provider";
+import { EdgeStoreProvider } from "@/lib/edgestore";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -52,11 +53,14 @@ export default function RootLayout({
 			>
 				<CookiesProvider>
 				<ReactQueryClientProvider>
-					{children}
+					<EdgeStoreProvider>
+						{children}
+						<Toaster position="bottom-center" />
+						<ModalProvider />
+					</EdgeStoreProvider>
 				</ReactQueryClientProvider>
 				</CookiesProvider>
-				<Toaster position="bottom-center" />
-				<ModalProvider />
+
 			</body>
 		</html>
 	);

@@ -54,14 +54,14 @@ export default function TrashBox () {
     ) => {
         event.stopPropagation();
 
-        restoreDocumentMutate.mutateAsync({ id: documentId });
+        restoreDocumentMutate.mutate({ id: documentId });
     }
 
     const onRemove = (
         documentId: string
     ) => {
 
-        removeDocumentMutate.mutateAsync({ id: documentId });
+        removeDocumentMutate.mutate({ id: documentId });
 
         // If user is currently viewing the deleted document, redirect
         // the user back to the documents page.

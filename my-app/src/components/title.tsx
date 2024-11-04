@@ -9,6 +9,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import { Spinner } from "./ui/spinner";
 import { useDebounce } from "@uidotdev/usehooks";
+import { Skeleton } from "./ui/skeleton";
 
 interface TitleProps {
     initialData: Document
@@ -19,7 +20,7 @@ export default function Title({initialData}: TitleProps) {
     const queryClient = useQueryClient();
     const inputRef = useRef<HTMLInputElement>(null);
     
-    const [title, setTitle] = useState(initialData.title);
+    const [title, setTitle] = useState(initialData?.title || "Untitled");
     const [isEditting, setIsEditting] = useState(false);
 
     const updateDocumentMutate = useMutation({
@@ -84,10 +85,16 @@ export default function Title({initialData}: TitleProps) {
                     className="font-normal h-auto p-1"
                 >
                     <span className="truncate">
-                        {title}
+                        {initialData?.title}
                     </span>
                 </Button>
             )}
         </div>
     )
+}
+
+Title.Skeleton = function TitleSkeleton() {
+    return (
+        <Skeleton className="h-9 w-16 rounded-md" />
+    )   
 }
