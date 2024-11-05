@@ -56,16 +56,17 @@ export default function DocumentIdPage({ params }: DocumentIdPageProps) {
     }
 
     if (getDocumentMutate.data === null) {
-        return <div>Note found</div>
+        return <div>Not found</div>
     }
 
     return (
         <div className="pb-40">
-            <Cover url={getDocumentMutate.data.coverImage} />                
+            <Cover preview url={getDocumentMutate.data.coverImage} />                
             <div className="md:max-w-3xl lg:max-w-4xl mx-auto">
-                <Toolbar initialData={getDocumentMutate.data} />
+                <Toolbar preview initialData={getDocumentMutate.data} />
                 {Editor && 
                 <Editor
+                    editable={false}
                     onChange={onChange}
                     initialContent={getDocumentMutate.data.content}
                 />

@@ -52,14 +52,21 @@ export async function getDocuments(req, res) {
 export async function getDocument(req, res) {
     try {
         const id = req.params.id;
-        console.log(id);
 
-        const userId = await getUserId(req.headers['authorization']);
-
-        let document = await DocumentItem.findOne({ _id: id,  userId: userId });
+        let document = await DocumentItem.findOne({ _id: id });
 
         if (document.isPublished && !document.isArchived) {
             return res.status(200).send(document);
+        }
+
+        if (req.headers['authorization']) {
+            const userId = await getUserId(req.headers['authorization']);
+
+            if (!userId) {
+                return res.status(401).send("Unauthorized");
+            }
+        } else {
+            return res.status(401).send("Unauthorized");
         }
         
         res.status(200).send(document);
@@ -79,14 +86,23 @@ export async function updateDocument(req, res) {
         const icon = req.body['icon'];
         const isPublished = req.body['isPublished'];
 
-        const userId = await getUserId(req.headers['authorization']);
-        
-        const existingDocument = await DocumentItem.findOne({ _id: id, userId: userId });
+        if (req.headers['authorization']) {
+            const userId = await getUserId(req.headers['authorization']);
 
-        if (!existingDocument) {
-            throw new Error("Not found");
+            if (!userId) {
+                return res.status(401).send("Unauthorized");
+            }
+
+            const existingDocument = await DocumentItem.findOne({ _id: id, userId: userId });
+
+            if (!existingDocument) {
+                throw new Error("Not found");
+            }
+    
+        } else {
+            return res.status(401).send("Unauthorized");
         }
-
+        
         const document = await DocumentItem.findOneAndUpdate({ _id: id }, {$set: { title: title, content: content, coverImage: coverImage, icon: icon, isPublished: isPublished }});
 
         res.status(200).send(document);

@@ -3,7 +3,7 @@
 import { Bot, ChevronRight, ChevronsLeft, Home, Inbox, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
-import { useParams, usePathname } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import UserItem from "./user_item";
 import Notes from "./notes";
@@ -41,6 +41,8 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
     const [isResetting, setIsResetting] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(isMobile);
 
+    const router = useRouter();
+
     const queryClient = useQueryClient();
 
     // Mutation to Create New Document
@@ -49,9 +51,10 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
 		onError: () => {
 			toast.error("Failed to create new note.")
 		},
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ["documents"] });
             toast.success("Created new note.");
+            router.push(`/documents/${data._id}`);
         },
     });
 

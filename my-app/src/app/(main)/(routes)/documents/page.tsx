@@ -15,14 +15,18 @@ export default function DocumentPage() {
 
 	const queryClient = useQueryClient();
 
+	const router = useRouter();
+
 	const createDocumentMutate = useMutation({
 		mutationFn: createDocument,
 		onError: () => {
 			toast.error("Failed to create new note.")
 		},
-		onSuccess: () => {
+		onSuccess: (data) => {
 			queryClient.invalidateQueries({ queryKey: ["documents"] });
-			toast.success("Created new note.")
+			toast.success("Created new note.");
+			router.push(`/documents/${data._id}`);
+
 		},
 	});
 

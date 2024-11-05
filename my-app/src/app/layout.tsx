@@ -54,9 +54,9 @@ export default function RootLayout({
 				<CookiesProvider>
 				<ReactQueryClientProvider>
 					<EdgeStoreProvider>
+					<Toaster position="bottom-center" />
+					<ModalProvider />
 						{children}
-						<Toaster position="bottom-center" />
-						<ModalProvider />
 					</EdgeStoreProvider>
 				</ReactQueryClientProvider>
 				</CookiesProvider>

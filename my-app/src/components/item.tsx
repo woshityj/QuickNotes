@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { archiveDocument, createDocument } from "@/app/services/documentServices";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuSeparator } from "./ui/dropdown-menu";
+import { useRouter } from "next/navigation";
 
 interface ItemProps {
     id?: string,
@@ -25,6 +26,8 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
 
     const queryClient = useQueryClient();
 
+    const router = useRouter();
+
     const handleExpand = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.stopPropagation();
         onExpand?.();
@@ -35,11 +38,13 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
 		onError: () => {
 			toast.error("Failed to create new note.")
 		},
-        onSuccess: () => {
+        onSuccess: (data) => {
             queryClient.invalidateQueries({
                 queryKey: ["documents"]
             });
-            toast.success("Created new note.")
+            toast.success("Created new note.");
+            router.push(`/documents/${data._id}`);
+
         },
     });
 
@@ -64,6 +69,7 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
             });
             queryClient.invalidateQueries({ queryKey: ["document", "detail", id] });
             toast.success("Archived document.")
+            router.push("/documents");
         },
     })
 
@@ -101,7 +107,7 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
                     { documentIcon }
                 </div>
             ): (
-                <Icon className="shrink-0 h-[18px] mr-2 text-muted-foreground" />
+                <Icon className="shrink-0 h-[18px] w-[18px] mr-2 text-muted-foreground" />
             )}
             <span className="truncate">
                 {label}

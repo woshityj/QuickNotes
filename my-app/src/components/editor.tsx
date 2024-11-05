@@ -15,7 +15,7 @@ interface EditorProps {
     editable?: boolean;
 };
 
-export default function Editor({onChange, initialContent, editable} : EditorProps) {
+const Editor = ({onChange, initialContent, editable} : EditorProps) => {
 
     const { resolvedTheme } = useTheme();
 
@@ -44,7 +44,8 @@ export default function Editor({onChange, initialContent, editable} : EditorProp
     return(
         <div>
             <BlockNoteView 
-                editor={editor} 
+                editor={editor}
+                editable={editable}
                 theme={resolvedTheme === "dark" ? "dark" : "light"}
                 onChange={() => onChange(JSON.stringify(editor.topLevelBlocks, null, 2))}
             />
@@ -52,3 +53,5 @@ export default function Editor({onChange, initialContent, editable} : EditorProp
     
     );
 }
+
+export default Editor;
