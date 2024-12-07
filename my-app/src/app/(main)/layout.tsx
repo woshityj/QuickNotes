@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { backendURL } from "../utils/constants";
 import SearchCommand from "@/components/search-command";
+import ChatSupport from "@/components/llm_chat";
 
 type User = {
     id: string;
@@ -107,6 +108,7 @@ export default function MainLayout({ children } : { children: React.ReactNode; }
             <main className="flex-1 h-full overflow-y-auto">
                 <SearchCommand />
                 {children}
+                <ChatSupport />
             </main>
         </div>
     );

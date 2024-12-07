@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, ChevronRight, ChevronsLeft, Home, Inbox, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
+import { Bot, Brain, ChevronRight, ChevronsLeft, Home, Inbox, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -157,8 +157,15 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
                     <Item label="Search" icon={Search} isSearch onClick={search.onOpen} />
                     <Item label="Settings" icon={Settings} onClick={settings.onOpen} />
                     <Item onClick={handleCreateNewDocument}  label="New page" icon={PlusCircle} />
+                    <Item label="QuickNotes AI" icon={Brain} />
                 </div>
+                
                 <div className="mt-4">
+                    <div className="pl-3 pr-3">
+                        <div>
+                            <span className="font-inter text-[#91918E] text-xs leading-[0.75rem]">Notes</span>
+                        </div>
+                    </div>
                     <DocumentList />
                     <Item 
                         onClick={handleCreateNewDocument}
@@ -177,38 +184,12 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
                         </PopoverContent>
                      </Popover>
                 </div>
-                <div className="px-3 py-2">
-                    <div className="flex items-center py-1">
-                        <Search className="w-5 h-5 mr-2" />
-                        <p className="font-inter font-medium text-sm leading-[1.313rem] text-[#5F5E5B]">Search</p>
-                    </div>
-                    <div className="flex items-center py-1">
-                        <Bot className="w-5 h-5 mr-2" />
-                        <p className="font-inter font-medium text-sm leading-[1.313rem] text-[#5F5E5B]">QuickNotes AI</p>
-                    </div>
-                    <div className="flex items-center py-1">
-                        <Home className="w-5 h-5 mr-2" />
-                        <Link href="/documents" className="font-inter font-medium text-sm leading-[1.313rem] text-[#5F5E5B]">Home</Link>
-                    </div>
-                    <div className="flex items-center py-1">
-                        <Inbox className="w-5 h-5 mr-2" />
-                        <p className="font-inter font-medium text-sm leading-[1.313rem] text-[#5F5E5B]">Inbox</p>
-                    </div>
-                </div>
                 <div
                     onMouseDown={handleMouseDown}
                     onClick={resetWidth} 
                     className="opacity-0 group-hover/sidebar:opacity-100 transition cursor-ew-resize absolute h-full w-1 bg-primary-black/10 right-0 top-0"
                 >
-
                 </div>
-
-                <div className="p-3">
-                    <div>
-                        <span className="font-inter text-[#91918E] text-xs leading-[0.75rem]">Notes</span>
-                    </div>
-                </div>
-
             </aside>
 
             <div
