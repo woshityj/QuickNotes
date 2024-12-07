@@ -64,11 +64,31 @@ Generate a concise summary from the provided text. write five bullets points on 
     
     return output_decoded
 
+def format_text_for_document(retrieved_docs: ArxivRetriever) -> str:
+    
+    format_text = "\n\n".join(doc.page_content for doc in retrieved_docs)
+
+    return format_text
+
+def retrieve_arxiv_documents(num_of_docs_to_load: int, input_text: str) -> str:
+    
+    retriever = ArxivRetriever(
+        load_max_docs = 3,
+        get_ful_document = False
+    )
+
+    retrieved_docs = retriever.invoke(input_text)
+    formatted_docs_content = format_text_for_document(retrieved_docs)
+
+    return formatted_docs_content
+
 def text_summarization_with_rag_validation(llm_model: AutoModelForCausalLM, tokenizer: AutoTokenizer, input_text: str) -> str:
     
+    context = retrieve_arxiv_documents(3, input_text)
+
     prompt_template = (
 f"""
-You are instructed to finish following text step by step. Here is the user text: ###{content}###.
+You are instructed to finish following text step by step. Here is the user text: ###{input_text}###.
 Here is the retrieval text:
 ###{context}###.
 The first step is to check if the retrieval text is relevant with the user text. Based on the check result, you are ready to implement the following step.
@@ -84,5 +104,31 @@ your reply should be: The user text is not relevant with the retrieval text. Sta
 """
     )
 
-llm_model, tokenizer = load_llm_model()
-print(text_summarization(llm_model, tokenizer, "The quick brown fox jumps over the lazy dog."))
+    dialogue_template = [
+        {"role": "user",
+        "content": prompt_template}
+    ]
+
+    prompt = tokenizer.apply_chat_template(dialogue_template, add_generation_prompt = False, tokenize = False)
+    
+    input_ids = tokenizer(prompt, return_tensors = "pt").to("cuda")
+
+    output_encoded = llm_model.generate(**input_ids, max_new_tokens = 2048, temperature = 0.1)
+
+    output_decoded = tokenizer.decode(output_encoded[0])
+
+    output_decoded = (output_decoded.replace(prompt, '')
+                                    .replace('<|eot_id|>', '')
+                                    .replace('<|start_header_id|>', '')
+                                    .replace('<|end_header_id|>', '')
+                                    .replace('<|begin_of_text|>', ''))
+    
+    return output_decoded
+
+
+# llm_model, tokenizer = load_llm_model()
+# user_content = "Computing is part of everything we do. Computing drives innovation in engineering, business, entertainment, education, and the sciences—and it provides solutions to complex, challenging problems of all kinds. Computer science is the study of computers and computational systems. It is a broad field which includes everything from the algorithms that make up software to how software interacts with hardware to how well software is developed and designed. Computer scientists use various mathematical algorithms, coding procedures, and their expert programming skills to study computer processes and develop new software and systems."
+# print(text_summarization(llm_model, tokenizer, user_content))
+# print(text_summarization_with_rag_validation(llm_model, tokenizer, user_content))
+
+# retrieve_arxiv_documents(3, "What is the ImageBind model?")

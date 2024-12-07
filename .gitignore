@@ -132,3 +132,5 @@ dist
 
 config.env
 venv
+
+llm_model/__pycache__
