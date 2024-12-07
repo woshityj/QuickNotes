@@ -8,6 +8,9 @@ def summarize():
         input_data = request.json['data']
 
         summarization = 
+    
+    except:
+        throw()
 
 if __name__ == '__main__':
     app.run(debug = True)

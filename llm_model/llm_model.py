@@ -68,7 +68,7 @@ def text_summarization_with_rag_validation(llm_model: AutoModelForCausalLM, toke
     
     prompt_template = (
 f"""
-You are instructed to finish following text step by step. Here is the user text: ###{content}###.
+You are instructed to finish following text step by step. Here is the user text: ###{input_text}###.
 Here is the retrieval text:
 ###{context}###.
 The first step is to check if the retrieval text is relevant with the user text. Based on the check result, you are ready to implement the following step.
