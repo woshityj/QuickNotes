@@ -35,7 +35,7 @@ def load_llm_model() -> (AutoModelForCausalLM, AutoTokenizer):
 
     return llm_model, tokenizer
 
-def text_summarization(llm_model: AutoModelForCausalLM, tokenizer: AutoTokenizer, input_text: str) -> str:
+async def text_summarization(llm_model: AutoModelForCausalLM, tokenizer: AutoTokenizer, input_text: str) -> str:
     
     prompt_template = (
 f"""
@@ -128,6 +128,7 @@ your reply should be: The user text is not relevant with the retrieval text. Sta
 
 # llm_model, tokenizer = load_llm_model()
 # user_content = "Computing is part of everything we do. Computing drives innovation in engineering, business, entertainment, education, and the sciences—and it provides solutions to complex, challenging problems of all kinds. Computer science is the study of computers and computational systems. It is a broad field which includes everything from the algorithms that make up software to how software interacts with hardware to how well software is developed and designed. Computer scientists use various mathematical algorithms, coding procedures, and their expert programming skills to study computer processes and develop new software and systems."
+# user_content = "When the ASCII value of a character is converted to binary, it can be seen that the sixth-bit changes from 1 to 0 when going from lowercase to uppercase of a character, and the rest remains the same."
 # print(text_summarization(llm_model, tokenizer, user_content))
 # print(text_summarization_with_rag_validation(llm_model, tokenizer, user_content))
 

@@ -3,14 +3,18 @@ from llm_model import load_llm_model, text_summarization, text_summarization_wit
 
 from fastapi import FastAPI
 import uvicorn
+from pydantic import BaseModel
+
+class Content(BaseModel):
+    content: str
 
 app = FastAPI()
 llm_model, tokenizer = load_llm_model()
 
 @app.post("/summarize")
-async def summarize(data: str):
+async def summarize(content: Content):
     try:
-        summarization = text_summarization(llm_model, tokenizer, data)
+        summarization = await text_summarization(llm_model, tokenizer, content.content)
 
         return {"data": summarization}
     

@@ -11,6 +11,7 @@ import "@blocknote/mantine/style.css";
 import { Brain } from "lucide-react";
 import { string } from "zod";
 import { useState } from "react";
+import { summarizeContent } from "@/app/services/llmServices";
 
 interface EditorProps {
     onChange: (value: string) => void;
@@ -34,16 +35,38 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
 
     const generateSummaryItem = (editor: BlockNoteEditor) => ({
         title: "Generate Summary of Text",
-        onItemClick: () => {
+        onItemClick: async () => {
 
             const currentBlock = editor.getTextCursorPosition().block;
 
-            const testingBlock: PartialBlock = {
+            let documentContent = "";
+
+            editor.forEachBlock((block: Block) => {
+                const blockText = getBlockTextAsserted(block);
+                if (blockText !== undefined) {
+                    documentContent += blockText + "\n";
+                }
+                return true;
+            });
+
+            let summarizedContent = "";
+
+            const summaryBlock: PartialBlock = {
                 type: "paragraph",
-                content: [{ type: "text", text: "Hello World", styles: { bold: true }}],
+                content: [{ type: "text", text: "Generating summary...", styles: { bold: true }}],
             };
 
-            editor.insertBlocks([testingBlock], currentBlock, "after");
+            const insertedBlocks = editor.insertBlocks([summaryBlock], currentBlock, "after");
+            const summaryBlockId = insertedBlocks[0].id;
+
+            if (documentContent !== undefined || documentContent !== "") {
+                const summarizeContentResult = await summarizeContent({content: documentContent});
+                summarizedContent = summarizeContentResult.data;
+            }
+
+            editor.updateBlock(summaryBlockId, {
+                content: summarizedContent
+            });
         },
         group: "QuickNotes AI",
         icon: <Brain size={18} />,

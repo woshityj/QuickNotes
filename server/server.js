@@ -4,6 +4,7 @@ import cors from "cors";
 import foldersRouter from "./routes/folders.js";
 import usersRouter from "./routes/users.js";
 import documentsRouter from "./routes/document.js";
+import llmRouter from "./routes/llm.js";
 
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
@@ -29,6 +30,7 @@ app.use(cookieParser());
 app.use("/folders", foldersRouter);
 app.use("/users", usersRouter);
 app.use("/documents", documentsRouter);
+app.use("/llm", llmRouter);
 
 // start the Express server
 app.listen(PORT, () => {
