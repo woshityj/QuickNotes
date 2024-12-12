@@ -8,10 +8,14 @@ import { useTheme } from "next-themes";
 import { useEdgeStore } from "@/lib/edgestore";
 
 import "@blocknote/mantine/style.css";
-import { Brain } from "lucide-react";
+import { Brain, Mic } from "lucide-react";
 import { string } from "zod";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { summarizeContent } from "@/app/services/llmServices";
+
+import 'regenerator-runtime/runtime';
+import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
+import { toast } from "sonner";
 
 interface EditorProps {
     onChange: (value: string) => void;
@@ -22,8 +26,14 @@ interface EditorProps {
 const Editor = ({onChange, initialContent, editable} : EditorProps) => {
 
     const { resolvedTheme } = useTheme();
-
     const { edgestore } = useEdgeStore();
+
+    const [microphoneState, setMicrophoneState] = useState(false);
+    const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
+    const [transcriptionBlockId, setTranscriptionBlockId] = useState<string | null>(null);
+
+    const [stream, setStream] = useState<any>(null);
+    const [track, setTrack] = useState<any>(null);
 
     const handleUpload = async (file: File) => {
         const response = await edgestore.publicFiles.upload({
@@ -32,6 +42,46 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
 
         return response.url;
     }
+
+    const speechToTextItem = (editor: BlockNoteEditor) => ({
+        title: "Speech to Text",
+        onItemClick: async () => {
+
+            const currentBlock = editor.getTextCursorPosition().block;
+
+            if (!browserSupportsSpeechRecognition) {
+                toast.error("Browser does not support speech recognition.");
+                return;
+            }
+
+            if (false == microphoneState) {
+                const transcriptBlock: PartialBlock = {
+                    type: "paragraph",
+                    content: [{ type: "text", text: "", styles: {} }]
+                };
+
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                setStream(stream);
+                const track = stream.getAudioTracks()[0];
+                setTrack(track);
+                setMicrophoneState(!microphoneState);
+                SpeechRecognition.startListening({ continuous: true });
+
+                const insertedBlocks = editor.insertBlocks([transcriptBlock], currentBlock, "after");
+                setTranscriptionBlockId(insertedBlocks[0].id);
+            } else {
+                track.stop();
+                stream.removeTrack(track);
+                setMicrophoneState(!microphoneState);
+                SpeechRecognition.stopListening();
+                setTranscriptionBlockId(null);
+                resetTranscript();
+            }
+        },
+        group: "Others",
+        icon: <Mic size={18} />,
+        subtext: "Speech to text"
+    });
 
     const generateSummaryItem = (editor: BlockNoteEditor) => ({
         title: "Generate Summary of Text",
@@ -105,6 +155,7 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
 
     const getCustomSlashMenuItems = (editor: BlockNoteEditor): DefaultReactSuggestionItem[] => [
         ...getDefaultReactSlashMenuItems(editor),
+        speechToTextItem(editor),
         generateSummaryItem(editor),
         generateQueryItem(editor)
     ];
@@ -120,6 +171,14 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
         initialContent: initialContent ? JSON.parse(initialContent) as PartialBlock[] : undefined,
         uploadFile: handleUpload
     });
+
+    useEffect(() => {
+        if (listening) {
+            if (null != transcriptionBlockId) {
+                editor.updateBlock(transcriptionBlockId, { content : transcript });
+            }
+        }
+    }, [transcript]);
 
     return(
         <div>

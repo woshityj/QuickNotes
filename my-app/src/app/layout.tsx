@@ -1,3 +1,5 @@
+import 'regenerator-runtime/runtime';
+
 import { Toaster } from "sonner";
 import { CookiesProvider } from "next-client-cookies/server";
 import type { Metadata } from "next";

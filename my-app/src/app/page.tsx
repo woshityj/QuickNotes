@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 
 import NavBar from "../components/navbar";
 
@@ -9,7 +10,7 @@ export default function Home() {
 	return(
 		<div className="mb-20">
 			<NavBar />
-
+			
 			<div className="px-40">
 				<div className="flex mt-[1.875rem] mb-28 justify-center">
 					<div className="max-w-lg mr-24">
