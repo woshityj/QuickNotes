@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot, Brain, ChevronRight, ChevronsLeft, Home, Inbox, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
+import { Bot, Brain, ChevronRight, ChevronsLeft, Home, Inbox, LayoutPanelTop, MenuIcon, Plus, PlusCircle, Search, Settings, Trash } from "lucide-react";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { useParams, usePathname, useRouter } from "next/navigation";
@@ -183,6 +183,12 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
                             <TrashBox />
                         </PopoverContent>
                      </Popover>
+
+                     <Item 
+                        onClick={ () => router.push('/templates') }
+                        label = "Templates"
+                        icon = {LayoutPanelTop}
+                     />
                 </div>
                 <div
                     onMouseDown={handleMouseDown}

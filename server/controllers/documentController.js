@@ -1,4 +1,5 @@
 import DocumentItem from "../models/document.model.js";
+import { getTemplate } from "./templateController.js";
 import { getUserId } from "./userController.js";
 
 import mongoose from "mongoose";
@@ -270,6 +271,30 @@ export async function removeDocumentCoverImage(req, res) {
         let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$unset: {coverImage: ""}});
 
         res.status(200).send(document);
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("Server Error");
+    }
+}
+
+export async function createDocumentFromTemplate(req, res) {
+    try {
+        if (req.headers['authorization']) {
+            const userId = await getUserId(req.headers['authorization']);
+
+            const templateId = req.params.id;
+
+            let template = await getTemplate(templateId);
+    
+            let document = new DocumentItem({ title: template.title, userId: userId, content: template.content, });
+
+            await document.save();
+
+            return res.status(200).send(document);
+        }
+
+        res.status(401).send("Unauthorized");
+
     } catch (err) {
         console.log(err);
         res.status(500).send("Server Error");

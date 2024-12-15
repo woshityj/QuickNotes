@@ -5,6 +5,7 @@ import foldersRouter from "./routes/folders.js";
 import usersRouter from "./routes/users.js";
 import documentsRouter from "./routes/document.js";
 import llmRouter from "./routes/llm.js";
+import templatesRouter from "./routes/template.js";
 
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
@@ -31,6 +32,7 @@ app.use("/folders", foldersRouter);
 app.use("/users", usersRouter);
 app.use("/documents", documentsRouter);
 app.use("/llm", llmRouter);
+app.use("/templates", templatesRouter);
 
 // start the Express server
 app.listen(PORT, () => {

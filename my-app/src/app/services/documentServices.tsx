@@ -248,3 +248,24 @@ export async function removeDocumentCoverImage({_id}: {_id: string}) {
         console.log(err);
     }
 }
+
+export async function createDocumentFromTemplate({_id}: {_id: string}) {
+    try {
+        const response = await fetch(`${backendURL}/documents/create-document-from-template/${_id}`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "Authorization": localStorage.getItem("AuthorizationToken") || ""
+            },
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            return response.json();
+        }
+
+    } catch (err) {
+        console.log(err);
+    }
+}

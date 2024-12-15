@@ -1,13 +1,14 @@
 "use client";
 
-import { archiveDocument } from "@/app/services/documentServices";
+import { archiveDocument, getDocument } from "@/app/services/documentServices";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem  } from "./ui/dropdown-menu";
 import { Button } from "./ui/button";
-import { MoreHorizontal, Trash } from "lucide-react";
+import { LayoutTemplate, MoreHorizontal, Trash } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
+import { createTemplate } from "@/app/services/templateServices";
 
 interface MenuProps {
     documentId: string
@@ -36,6 +37,23 @@ export default function Menu({documentId}: MenuProps) {
         router.push("/documents");
     }
 
+    const saveTemplateMutate = useMutation({
+        mutationFn: createTemplate,
+        onError: () => {
+            toast.error("Failed to save document as template.");
+        },
+        onSuccess: () => {
+            toast.success("Saved document as template.");
+        }
+    });
+
+    const onSaveTemplate =  async (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        event.stopPropagation();
+
+        let document = await getDocument(documentId);
+        saveTemplateMutate.mutate({ title: document.title, content: document.content });
+    }
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -47,6 +65,10 @@ export default function Menu({documentId}: MenuProps) {
                 <DropdownMenuItem onClick={onArchive}>
                     <Trash className="h-4 w-4 mr-2" />
                     Delete
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={onSaveTemplate}>
+                    <LayoutTemplate className="h-4 w-4 mr-2" />
+                    Save as Template
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <div className="text-xs text-muted-foreground p-2">
