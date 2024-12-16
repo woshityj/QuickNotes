@@ -1,6 +1,8 @@
 import os
 import torch
 
+from unsloth import FastLanguageModel, is_bfloat16_supported
+
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers.utils import is_flash_attn_2_available
 
@@ -13,55 +15,74 @@ os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
 device = "cuda"
 torch.cuda.empty_cache()
 
-def load_llm_model() -> (AutoModelForCausalLM, AutoTokenizer):
+def load_peft_model() -> (FastLanguageModel, AutoTokenizer):
 
     if (is_flash_attn_2_available() and (torch.cuda.get_device_capability(0)[0] >= 8)):
         attn_implementation = "flash_attention_2"
     else:
         attn_implementation = "sdpa"
-    
+
     print(f"[INFO] Using attention implementation: {attn_implementation}")
 
-    model_id = "meta-llama/Llama-3.2-3B-Instruct"
+    model_id = "woshityj/llama_3.2_3B_Instruct_bnb_finetuned"
     print(f"[INFO] Using model_id: {model_id}")
 
-    tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path = model_id)
-    llm_model = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path = model_id,
-                                                    torch_dtype = torch.float16,
-                                                    low_cpu_mem_usage = False,
-                                                    attn_implementation = attn_implementation)
-    
-    llm_model.to(device)
+    peft_model, tokenizer = FastLanguageModel.from_pretrained(
+        model_name = model_id,
+        max_seq_length = 8192,
+        dtype = None,
+        load_in_4bit = True,
+        token = "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"
+    )
 
-    return llm_model, tokenizer
+    peft_model.to(device)
 
-async def text_summarization(llm_model: AutoModelForCausalLM, tokenizer: AutoTokenizer, input_text: str) -> str:
+    return peft_model, tokenizer
+
+# def load_llm_model() -> (AutoModelForCausalLM, AutoTokenizer):
+
+#     if (is_flash_attn_2_available() and (torch.cuda.get_device_capability(0)[0] >= 8)):
+#         attn_implementation = "flash_attention_2"
+#     else:
+#         attn_implementation = "sdpa"
     
-    prompt_template = (
-f"""
-Generate a concise summary from the provided text. write five bullets points on the key info and then write a summary expanding on those points into a 500 word essay.
+#     print(f"[INFO] Using attention implementation: {attn_implementation}")
+
+#     model_id = "meta-llama/Llama-3.2-3B-Instruct"
+#     print(f"[INFO] Using model_id: {model_id}")
+
+#     tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path = model_id)
+#     llm_model = AutoModelForCausalLM.from_pretrained(pretrained_model_name_or_path = model_id,
+#                                                     torch_dtype = torch.float16,
+#                                                     low_cpu_mem_usage = False,
+#                                                     attn_implementation = attn_implementation)
+    
+#     llm_model.to(device)
+
+#     return llm_model, tokenizer
+
+async def text_summarization(llm_model: FastLanguageModel, tokenizer: AutoTokenizer, input_text: str) -> str:
+    
+    prompt = (
+f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+Summarize the following text.
+
+### Input:
 {input_text}
+
+### Response:
 """)
 
-    dialogue_template = [
-        {"role": "user",
-        "content": prompt_template}
-    ]
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    input_ids = tokenizer(prompt, return_tensors = 'pt').to(device)
+    FastLanguageModel.for_inference(llm_model)
 
-    prompt = tokenizer.apply_chat_template(dialogue_template, add_generation_prompt = False, tokenize = False)
+    output_encoded = llm_model.generate(**input_ids, max_new_tokens = 8192, temperature = 0.1)
+    prompt_length = input_ids['input_ids'].shape[1]
+    output_decoded = tokenizer.decode(output_encoded[0][prompt_length:], skip_special_tokens = True)
 
-    input_ids = tokenizer(prompt, return_tensors = "pt").to("cuda")
-
-    output_encoded = llm_model.generate(**input_ids, max_new_tokens = 1024, temperature = 0.1)
-
-    output_decoded = tokenizer.decode(output_encoded[0])
-
-    output_decoded = (output_decoded.replace(prompt, '')
-                                    .replace('<|eot_id|>', '')
-                                    .replace('<|start_header_id|>', '')
-                                    .replace('<|end_header_id|>', '')
-                                    .replace('<|begin_of_text|>', ''))
-    
     return output_decoded
 
 def format_text_for_document(retrieved_docs: ArxivRetriever) -> str:
