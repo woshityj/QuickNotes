@@ -13,3 +13,17 @@ export async function summarizeDocument(req, res) {
         res.status(500).send('Server Error');
     }
 }
+
+export async function chat(req, res) {
+    try {
+        const messages = req.body['messages'];
+
+        console.log("Did it work ?");
+        console.log(messages);
+
+        res.status(200).send(messages);
+    } catch (err) {
+        console.log(err);
+        res.status(500).send("Server Error");
+    }
+}
