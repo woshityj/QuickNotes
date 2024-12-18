@@ -18,10 +18,16 @@ export async function chat(req, res) {
     try {
         const messages = req.body['messages'];
 
-        console.log("Did it work ?");
-        console.log(messages);
+        const newMessages = await axios.post('http://127.0.0.1:8000/chat', {messages: messages}, {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }
+        );
 
-        res.status(200).send(messages);
+        console.log(newMessages.data);
+
+        res.status(200).send(newMessages.data);
     } catch (err) {
         console.log(err);
         res.status(500).send("Server Error");

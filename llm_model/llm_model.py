@@ -1,12 +1,17 @@
 import os
 import torch
+import json
 
 from unsloth import FastLanguageModel, is_bfloat16_supported
+from unsloth.chat_templates import get_chat_template
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers.utils import is_flash_attn_2_available
+import transformers
 
 from langchain_community.retrievers import ArxivRetriever
+
+from pydantic import BaseModel
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_API_KEY"] = "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"
@@ -15,7 +20,11 @@ os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
 device = "cuda"
 torch.cuda.empty_cache()
 
-def load_peft_model() -> (FastLanguageModel, AutoTokenizer):
+class Message(BaseModel):
+    role: str
+    content: str
+
+def load_peft_model():
 
     if (is_flash_attn_2_available() and (torch.cuda.get_device_capability(0)[0] >= 8)):
         attn_implementation = "flash_attention_2"
@@ -146,6 +155,50 @@ your reply should be: The user text is not relevant with the retrieval text. Sta
     
     return output_decoded
 
+async def custom_chat(llm_model: FastLanguageModel, tokenizer: AutoTokenizer, messages: list[Message]) -> str:
+    
+    dialogue_template = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant. Answer all questions to the best of your ability in English."
+        }
+    ]
+
+    for message in messages:
+        dialogue_template.append({
+            "role": message.role,
+            "content": message.content
+        })
+
+    print(dialogue_template)
+
+    # print(dialogue_template)
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    prompt = tokenizer.apply_chat_template(dialogue_template, add_generation_prompt = True, tokenize = False)
+
+    # print(prompt)
+
+    FastLanguageModel.for_inference(llm_model)
+
+    # input_ids = {k: v.to(llm_model.device) for k, v in prompt.items()}
+
+    input_ids = tokenizer(prompt, return_tensors = "pt").to(device)
+    output_encoded = llm_model.generate(input_ids = input_ids['input_ids'], attention_mask = input_ids['attention_mask'], max_new_tokens = 8192, temperature = 0.1, do_sample = True)
+
+    output_decoded = tokenizer.decode(output_encoded[0], skip_special_tokens = True)
+
+    # print(output_decoded)
+
+    response_content = output_decoded.split("assistant")[-1].strip()
+
+
+    response = {
+        "role": "assistant",
+        "content": response_content
+    }
+
+    return response_content
 
 # llm_model, tokenizer = load_llm_model()
 # user_content = "Computing is part of everything we do. Computing drives innovation in engineering, business, entertainment, education, and the sciences—and it provides solutions to complex, challenging problems of all kinds. Computer science is the study of computers and computational systems. It is a broad field which includes everything from the algorithms that make up software to how software interacts with hardware to how well software is developed and designed. Computer scientists use various mathematical algorithms, coding procedures, and their expert programming skills to study computer processes and develop new software and systems."

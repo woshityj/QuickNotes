@@ -1,5 +1,5 @@
 import { backendURL } from "@/app/utils/constants";
-import { convertToCoreMessages } from "ai";
+import { createDataStreamResponse } from "ai";
 
 // export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     
@@ -32,11 +32,43 @@ export async function POST(req: Request) {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ messages: convertToCoreMessages(messages) }),
+        body: JSON.stringify({ messages: messages }),
     });
 
-    if (response.ok) {
-        return Response.json(response);
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder();
+    let data = '';
+    if (reader) {
+        const stream = new ReadableStream({
+            async start(controller) {
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    data += decoder.decode(value, { stream: true });
+                    controller.enqueue(value);
+                }
+                controller.close();
+            }
+        });
+        await new Response(stream).text();
     }
+    
+    console.log(data);
+
+    return new Response(data);
+
+    // const newAssistantMessage = {
+    //     id: Date.now().toString(),
+    //     role: "assistant",
+    //     content: data.content || data.message || JSON.stringify(data)
+    // };
+
+    // return Response.json(newAssistantMessage)
+
+
+    if (response.ok) {
+        return Response.json({data});
+    }
+
     return Response.error();
 }

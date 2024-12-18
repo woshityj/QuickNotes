@@ -37,36 +37,80 @@ const ChatAiIcons = [
 	  icon: Volume2,
 	  label: "Volume",
 	},
-  ];
+];
+
+interface Message {
+	role: 'user' | 'assistant';
+	content: string
+}
 
 export default function ChatSupport() {
 
 	const [authorizationToken, setAuthorizationToken] = useState<string | null>(null);
+	const [messages, setMessages] = useState<Message[]>([]);
+	const [input, setInput] = useState('')
+	const [isLoading, setIsLoading] = useState(false);
 
 	useEffect(() => {
 		const authorizationTokenValue = localStorage.getItem("AuthorizationToken");
 		setAuthorizationToken(authorizationTokenValue);
-	}, [])
+	}, []);
+
+	const sendMessage = async (e: React.FormEvent) => {
+		e.preventDefault();
+
+		const newMessages = [...messages, { role: 'user' as 'user', content: input }];
+		setMessages(newMessages);
+		setInput('');
+		setIsLoading(true);
+
+		try {
+			const response = await fetch(`${backendURL}/llm/chat`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ messages: newMessages }),
+			});
+
+			if (!response.ok) {
+				throw new Error('Network response was not ok');
+			}
+
+			const data = await response.text();
+
+			setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: data } ]);
+
+		} catch (error) {
+			console.log("Error sending message:", error);
+
+			setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: 'Sorry, I could not process your request at this time. Please try again later.'} ]);
+		} finally {
+			setIsLoading(false);
+		}
+	}
+
+
 
 	const [isGenerating, setIsGenerating] = useState(false);
-	const { messages, input, handleInputChange, handleSubmit, isLoading, reload } = useChat({
-		api: '/api/custom_chat',
-		headers: {
-			Authorization: authorizationToken || ""
-		},
-		credentials: 'include',
-		onResponse(response) {
-			if (response) {
-				console.log(response);
-				setIsGenerating(false)
-			}
-		},
-		onError(error) {
-			if (error) {
-				setIsGenerating(false);
-			}
-		}
-	});
+	// const { messages, input, handleInputChange, handleSubmit, isLoading, reload, setData } = useChat({
+	// 	api: '/api/custom_chat',
+	// 	headers: {
+	// 		Authorization: authorizationToken || ""
+	// 	},
+	// 	credentials: 'include',
+	// 	onResponse: response => {
+	// 		console.log("Response: ", response);
+	// 	},
+	// 	onError(error) {
+	// 		if (error) {
+	// 			setIsGenerating(false);
+	// 		}
+	// 	},
+	// 	onFinish: (message) => {
+	// 		console.log("Finished generating: ", message);
+	// 	}
+	// });
 
 	const messagesRef = useRef<HTMLDivElement>(null);
 	const formRef = useRef<HTMLFormElement>(null);
@@ -77,41 +121,41 @@ export default function ChatSupport() {
 		}
 	}, [messages]);
 
-	const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		setIsGenerating(true);
-		handleSubmit(e);
-	}
+	// const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+	// 	e.preventDefault();
+	// 	setIsGenerating(true);
+	// 	handleSubmit(e);
+	// }
 
-	const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-		if (e.key === "Enter" && !e.shiftKey) {
-			e.preventDefault();
-			if (isGenerating || isLoading || !input) return;
-			setIsGenerating(true);
-			onSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
-		}
-	};
+	// const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+	// 	if (e.key === "Enter" && !e.shiftKey) {
+	// 		e.preventDefault();
+	// 		if (isGenerating || isLoading || !input) return;
+	// 		setIsGenerating(true);
+	// 		onSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
+	// 	}
+	// };
 
-	const handleActionClick = async (action: string, messageIndex: number) => {
-		console.log("Action clicked: ", action, "Message Index: ", messageIndex);
-		if (action === "Refresh") {
-			setIsGenerating(true);
-			try {
-				await reload();
-			} catch (error) {
-				console.log("Error reloading: ", error);
-			} finally {
-				setIsGenerating(false);
-			}
-		}
+	// const handleActionClick = async (action: string, messageIndex: number) => {
+	// 	console.log("Action clicked: ", action, "Message Index: ", messageIndex);
+	// 	if (action === "Refresh") {
+	// 		setIsGenerating(true);
+	// 		try {
+	// 			await reload();
+	// 		} catch (error) {
+	// 			console.log("Error reloading: ", error);
+	// 		} finally {
+	// 			setIsGenerating(false);
+	// 		}
+	// 	}
 
-		if (action === "Copy") {
-			const message = messages[messageIndex];
-			if (message && message.role == "assistant") {
-				navigator.clipboard.writeText(message.content);
-			}
-		}
-	};
+	// 	if (action === "Copy") {
+	// 		const message = messages[messageIndex];
+	// 		if (message && message.role == "assistant") {
+	// 			navigator.clipboard.writeText(message.content);
+	// 		}
+	// 	}
+	// };
 
 	return (
 		<ExpandableChat size="sm" position="bottom-right">
@@ -164,7 +208,7 @@ export default function ChatSupport() {
 															className="size-5"
 															key={iconIndex}
 															icon={<Icon className="size-3" />}
-															onClick={() => handleActionClick(icon.label, index)}
+															// onClick={() => handleActionClick(icon.label, index)}
 														/>
 													)
 												})}
@@ -189,12 +233,14 @@ export default function ChatSupport() {
 				<form 
 					className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
 					ref={formRef}
-					onSubmit={onSubmit}
+					onSubmit={sendMessage}
 				>
 					<ChatInput
 						value={input}
-						onKeyDown={onKeyDown}
-						onChange={handleInputChange}
+						onChange={(e) => setInput(e.target.value)}
+						disabled={isLoading}
+						// onKeyDown={onKeyDown}
+						// onChange={handleInputChange}
 						placeholder="Type your message here..."
 						className="min-h-12 resize-none rounded-lg bg-background border-0 p-3 shadow-none focus-visible:ring-0"
 					/>
