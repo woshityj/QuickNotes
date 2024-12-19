@@ -42,7 +42,9 @@ The following methodology was employed for the development of the note-taking we
 ## Repository Structure
 ---
 ```
-/my-app (front-end web application)
+/my-app (NextJs Front-End Web Application)
+/server (Node.JS Back-End)
+/llm_model (FastAPI Large Language Model Endpoint)
 
 .gitignore
 
@@ -61,4 +63,15 @@ npm run build
 2. Command to run the Back-End Server via Command Line
 ```shell
 node --env-file=config.env server
+```
+
+3. Command to run the Large Language Model FastAPI Endpoint via Command Line
+```shell
+fastapi dev llm_model/main.py
+```
+
+4. If the port 8000 is being used by another program, identify the PID and kill the task
+```shell
+netstat -a -n -o | find "8000"
+taskkill /F /PID <PID>
 ```
