@@ -22,6 +22,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import CodeDisplayBlock from "./code-display-block";
 import { backendURL } from "@/app/utils/constants";
+import { toast } from "sonner";
 
 
 const ChatAiIcons = [
@@ -157,6 +158,17 @@ export default function ChatSupport() {
 	// 	}
 	// };
 
+	const handleActionClick = async (action: string, messageIndex: number) => {
+		console.log("Action clicked: ", action, "Message Index: ", messageIndex);
+		if (action === "Copy") {
+			const message = messages[messageIndex];
+			if (message && message.role == "assistant") {
+				navigator.clipboard.writeText(message.content);
+				toast.success("Copied to clipboard");
+			}
+		}
+	}
+
 	return (
 		<ExpandableChat size="sm" position="bottom-right">
 			<ExpandableChatHeader className="flex-col text-center justify-center">
@@ -208,7 +220,7 @@ export default function ChatSupport() {
 															className="size-5"
 															key={iconIndex}
 															icon={<Icon className="size-3" />}
-															// onClick={() => handleActionClick(icon.label, index)}
+															onClick={() => handleActionClick(icon.label, index)}
 														/>
 													)
 												})}

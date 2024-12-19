@@ -4,7 +4,7 @@ export async function summarizeDocument(req, res) {
     try {
         const content = req.body['content'];
         
-        const summarizedContent = await axios.post('http://localhost:8000/summarize', {content: content});
+        const summarizedContent = await axios.post('http://127.0.0.1:8000/summarize', {content: content});
 
         res.status(200).send(summarizedContent.data);
 
