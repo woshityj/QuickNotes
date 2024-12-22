@@ -9,6 +9,7 @@ import templatesRouter from "./routes/template.js";
 
 import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
+import bodyParser from "body-parser";
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -21,7 +22,10 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(bodyParser.json({limit: '50mb'}));
+app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.use(express.json());
+
 
 mongoose.connect(mongoURI)
         .then(() => console.log("MongoDB Connected."))

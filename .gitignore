@@ -134,3 +134,7 @@ config.env
 venv
 
 llm_model/__pycache__
+llm_model/unsloth_compiled_cache
+llm_model/main.exp
+llm_model/main.lib
+llm_model/main.obj

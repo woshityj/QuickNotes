@@ -2,7 +2,9 @@ import os
 import torch
 import json
 
-from unsloth import FastLanguageModel, is_bfloat16_supported
+from PIL import Image
+
+from unsloth import FastLanguageModel, is_bfloat16_supported, FastVisionModel
 from unsloth.chat_templates import get_chat_template
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -47,6 +49,81 @@ def load_peft_model():
     peft_model.to(device)
 
     return peft_model, tokenizer
+
+def load_multi_modal_llm():
+
+    if (is_flash_attn_2_available() and (torch.cuda.get_device_capability(0)[0] >= 8)):
+        attn_implementation = "flash_attention_2"
+    else:
+        attn_implementation = "sdpa"
+
+    print(f"[INFO] Using attention implementation: {attn_implementation}")
+
+    model_id = "unsloth/Llama-3.2-11B-Vision-Instruct-bnb-4bit"
+    print(f"[INFO] Using model_id: {model_id}")
+
+    peft_model, tokenizer = FastVisionModel.from_pretrained(
+        model_name = model_id,
+        max_seq_length = 8192,
+        dtype = None,
+        load_in_4bit = True,
+        token = "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"
+    )
+
+    peft_model.to(device)
+
+    return peft_model, tokenizer
+
+def text_summarization_multi_modal(llm_model: FastVisionModel, tokenizer: AutoTokenizer, input_text: str) -> str:
+
+    instruction = (
+f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+Summarize the following text.
+
+### Input:
+{input_text}
+
+### Response:
+""")
+    
+    messages = [
+        {"role": "user", "content": [
+            {"type": "text", "text": instruction}
+        ]}
+    ]
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    input_text = tokenizer.apply_chat_template(messages, add_generation_prompt = True)
+    input_ids = tokenizer(None, input_text, add_special_tokens = False, return_tensors = 'pt').to(device)
+    FastVisionModel.for_inference(llm_model)
+
+    output_encoded = llm_model.generate(**input_ids, max_new_tokens = 8192, temperature = 0.1, use_cache = True)
+    prompt_length = input_ids['input_ids'].shape[1]
+    output_decoded = tokenizer.decode(output_encoded[0][prompt_length:], skip_special_tokens = True)
+
+    return output_decoded
+
+async def text_with_image(llm_model: FastVisionModel, tokenizer: AutoTokenizer, input_text: str, image: Image):
+
+    messages = [
+        {"role": "user", "content": [
+            {"type": "image" },
+            {"type": "text", "text": input_text}
+        ]}
+    ]
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    input_text = tokenizer.apply_chat_template(messages, add_generation_prompt = True)
+    inputs = tokenizer(image, input_text, return_tensors = 'pt', add_special_tokens = False).to(device)
+
+    output_encoded = llm_model.generate(**inputs, max_new_tokens = 8192, temperature = 0.1, use_cache = True)
+    prompt_length = inputs['input_ids'].shape[1]
+    output_decoded = tokenizer.decode(output_encoded[0][prompt_length:], skip_special_tokens = True)
+
+    return output_decoded
+
 
 # def load_llm_model() -> (AutoModelForCausalLM, AutoTokenizer):
 
@@ -155,6 +232,34 @@ your reply should be: The user text is not relevant with the retrieval text. Sta
     
     return output_decoded
 
+async def custom_chat_multi_modal_llm(llm_model: FastVisionModel, tokenizer: AutoTokenizer, messages: list[Message]) -> str:
+    dialogue_template = [
+        {
+            "role": "user",
+            "content": "You are a helpful assistant. Answer all questions to the best of your ability in English."
+        }
+    ]
+
+    for message in messages:
+        dialogue_template.append({
+            "role": message.role,
+            "content": [
+                {"type": "text", "text": message.content}
+            ]
+        })
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    input_text = tokenizer.apply_chat_template(dialogue_template, add_generation_prompt = True, tokenize = False)
+
+    FastVisionModel.for_inference(llm_model)
+    inputs = tokenizer(None, input_text, return_tensors = 'pt', add_special_tokens = False).to(device)
+
+    output_encoded = llm_model.generate(**inputs, max_new_tokens = 8192, temperature = 0.1, use_cache = True)
+    prompt_length = inputs['input_ids'].shape[1]
+    output_decoded = tokenizer.decode(output_encoded[0][prompt_length:], skip_special_tokens = True)
+
+    return output_decoded
+
 async def custom_chat(llm_model: FastLanguageModel, tokenizer: AutoTokenizer, messages: list[Message]) -> str:
     
     dialogue_template = [
@@ -170,10 +275,6 @@ async def custom_chat(llm_model: FastLanguageModel, tokenizer: AutoTokenizer, me
             "content": message.content
         })
 
-    print(dialogue_template)
-
-    # print(dialogue_template)
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     prompt = tokenizer.apply_chat_template(dialogue_template, add_generation_prompt = True, tokenize = False)
 
@@ -181,27 +282,20 @@ async def custom_chat(llm_model: FastLanguageModel, tokenizer: AutoTokenizer, me
 
     FastLanguageModel.for_inference(llm_model)
 
-    # input_ids = {k: v.to(llm_model.device) for k, v in prompt.items()}
-
     input_ids = tokenizer(prompt, return_tensors = "pt").to(device)
     output_encoded = llm_model.generate(input_ids = input_ids['input_ids'], attention_mask = input_ids['attention_mask'], max_new_tokens = 8192, temperature = 0.1, do_sample = True)
 
     output_decoded = tokenizer.decode(output_encoded[0], skip_special_tokens = True)
 
-    # print(output_decoded)
-
     response_content = output_decoded.split("assistant")[-1].strip()
-
-
-    response = {
-        "role": "assistant",
-        "content": response_content
-    }
 
     return response_content
 
-# llm_model, tokenizer = load_llm_model()
+# llm_model, tokenizer = load_multi_modal_llm()
 # user_content = "Computing is part of everything we do. Computing drives innovation in engineering, business, entertainment, education, and the sciences—and it provides solutions to complex, challenging problems of all kinds. Computer science is the study of computers and computational systems. It is a broad field which includes everything from the algorithms that make up software to how software interacts with hardware to how well software is developed and designed. Computer scientists use various mathematical algorithms, coding procedures, and their expert programming skills to study computer processes and develop new software and systems."
+# print(text_summarization_multi_modal(llm_model, tokenizer, user_content))
+
+# llm_model, tokenizer = load_llm_model()
 # user_content = "When the ASCII value of a character is converted to binary, it can be seen that the sixth-bit changes from 1 to 0 when going from lowercase to uppercase of a character, and the rest remains the same."
 # print(text_summarization(llm_model, tokenizer, user_content))
 # print(text_summarization_with_rag_validation(llm_model, tokenizer, user_content))

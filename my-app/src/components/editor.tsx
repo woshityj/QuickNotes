@@ -43,6 +43,10 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
         return response.url;
     }
 
+    const transcribeVideoItem = (editor: BlockNoteEditor) => ({
+        
+    })
+
     const speechToTextItem = (editor: BlockNoteEditor) => ({
         title: "Speech to Text",
         onItemClick: async () => {

@@ -4,7 +4,7 @@ export async function summarizeDocument(req, res) {
     try {
         const content = req.body['content'];
         
-        const summarizedContent = await axios.post('http://127.0.0.1:8000/summarize', {content: content});
+        const summarizedContent = await axios.post('http://localhost:8000/summarize', {content: content});
 
         res.status(200).send(summarizedContent.data);
 
@@ -17,10 +17,13 @@ export async function summarizeDocument(req, res) {
 export async function chat(req, res) {
     try {
         const messages = req.body['messages'];
+        const file = req.body['file'];
+        console.log(file);
 
-        const newMessages = await axios.post('http://127.0.0.1:8000/chat', {messages: messages}, {
+        const newMessages = await axios.post('http://localhost:8000/chat', {messages: messages, file: file}, {
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Accept': '*/*'
             }
         }
         );

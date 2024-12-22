@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/chat/expandable-chat";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import { Button } from "./ui/button";
-import { CopyIcon, CornerDownLeft, Mic, Paperclip, RefreshCcw, Send, Volume2 } from "lucide-react";
+import { CopyIcon, CornerDownLeft, Mic, Paperclip, RefreshCcw, Send, Volume2, X } from "lucide-react";
 import { useChat } from "ai/react";
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
@@ -49,13 +49,30 @@ export default function ChatSupport() {
 
 	const [authorizationToken, setAuthorizationToken] = useState<string | null>(null);
 	const [messages, setMessages] = useState<Message[]>([]);
+	const [selectedImage, setSelectedImage] = useState<any>(null);
+	const [preview, setPreview] = useState<string | null>(null);
+	const [base64, setBase64] = useState<string | null>(null);
 	const [input, setInput] = useState('')
 	const [isLoading, setIsLoading] = useState(false);
+	const [isGenerating, setIsGenerating] = useState(false);
+
+	const imageInputRef = useRef<HTMLInputElement>(null);
+	const messagesRef = useRef<HTMLDivElement>(null);
+	const formRef = useRef<HTMLFormElement>(null);
 
 	useEffect(() => {
 		const authorizationTokenValue = localStorage.getItem("AuthorizationToken");
 		setAuthorizationToken(authorizationTokenValue);
 	}, []);
+
+	const resetChatBotState = () => {
+		setSelectedImage(null);
+		setPreview(null);
+		setBase64(null);
+
+		setIsLoading(false);
+		setIsGenerating(false);
+	}
 
 	const sendMessage = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -64,6 +81,7 @@ export default function ChatSupport() {
 		setMessages(newMessages);
 		setInput('');
 		setIsLoading(true);
+		setIsGenerating(true);
 
 		try {
 			const response = await fetch(`${backendURL}/llm/chat`, {
@@ -71,7 +89,7 @@ export default function ChatSupport() {
 				headers: {
 					"Content-Type": "application/json",
 				},
-				body: JSON.stringify({ messages: newMessages }),
+				body: JSON.stringify({ messages: newMessages, file: base64 }),
 			});
 
 			if (!response.ok) {
@@ -86,77 +104,17 @@ export default function ChatSupport() {
 			console.log("Error sending message:", error);
 
 			setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: 'Sorry, I could not process your request at this time. Please try again later.'} ]);
+
 		} finally {
-			setIsLoading(false);
+			resetChatBotState();
 		}
 	}
-
-
-
-	const [isGenerating, setIsGenerating] = useState(false);
-	// const { messages, input, handleInputChange, handleSubmit, isLoading, reload, setData } = useChat({
-	// 	api: '/api/custom_chat',
-	// 	headers: {
-	// 		Authorization: authorizationToken || ""
-	// 	},
-	// 	credentials: 'include',
-	// 	onResponse: response => {
-	// 		console.log("Response: ", response);
-	// 	},
-	// 	onError(error) {
-	// 		if (error) {
-	// 			setIsGenerating(false);
-	// 		}
-	// 	},
-	// 	onFinish: (message) => {
-	// 		console.log("Finished generating: ", message);
-	// 	}
-	// });
-
-	const messagesRef = useRef<HTMLDivElement>(null);
-	const formRef = useRef<HTMLFormElement>(null);
 
 	useEffect(() => {
 		if (messagesRef.current) {
 			messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
 		}
 	}, [messages]);
-
-	// const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-	// 	e.preventDefault();
-	// 	setIsGenerating(true);
-	// 	handleSubmit(e);
-	// }
-
-	// const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-	// 	if (e.key === "Enter" && !e.shiftKey) {
-	// 		e.preventDefault();
-	// 		if (isGenerating || isLoading || !input) return;
-	// 		setIsGenerating(true);
-	// 		onSubmit(e as unknown as React.FormEvent<HTMLFormElement>);
-	// 	}
-	// };
-
-	// const handleActionClick = async (action: string, messageIndex: number) => {
-	// 	console.log("Action clicked: ", action, "Message Index: ", messageIndex);
-	// 	if (action === "Refresh") {
-	// 		setIsGenerating(true);
-	// 		try {
-	// 			await reload();
-	// 		} catch (error) {
-	// 			console.log("Error reloading: ", error);
-	// 		} finally {
-	// 			setIsGenerating(false);
-	// 		}
-	// 	}
-
-	// 	if (action === "Copy") {
-	// 		const message = messages[messageIndex];
-	// 		if (message && message.role == "assistant") {
-	// 			navigator.clipboard.writeText(message.content);
-	// 		}
-	// 	}
-	// };
 
 	const handleActionClick = async (action: string, messageIndex: number) => {
 		console.log("Action clicked: ", action, "Message Index: ", messageIndex);
@@ -166,6 +124,31 @@ export default function ChatSupport() {
 				navigator.clipboard.writeText(message.content);
 				toast.success("Copied to clipboard");
 			}
+		}
+	}
+
+	const handleImageUploadButtonClick = () => {
+		imageInputRef.current?.click();
+	}
+
+	const handleImageUpload = async (event: React.FormEvent) => {
+		event.preventDefault();
+		const target= event.target as HTMLInputElement;
+		if (!target.files) return;
+		const file = target.files[0];
+		
+		const imageUrl = URL.createObjectURL(file);
+		setPreview(imageUrl);
+		setSelectedImage(file);
+
+		const reader = new FileReader();
+		
+		reader.readAsDataURL(file);
+
+		reader.onloadend = () => {
+			const base64String = reader.result as string;
+			const plainBase64 = base64String.split(',')[1];
+			setBase64(plainBase64);
 		}
 	}
 
@@ -242,11 +225,28 @@ export default function ChatSupport() {
 			</ExpandableChatBody>
 			<ExpandableChatFooter>
 				<div className="w-full px-4">
+
+				{preview && (
+						<div className="relative mb-2">
+							<img className="w-12 h-12 object-cover rounded-md border" src={preview} alt="Preview Image"></img>
+							<Button
+								variant="ghost"
+								size="icon"
+								className="absolute top-1 right-1"
+								onClick={() => {
+									setPreview(null);
+									setSelectedImage(null);
+								}}>
+								<X className="size-4"></X>
+							</Button>
+						</div>
+				)}
 				<form 
 					className="relative rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
 					ref={formRef}
 					onSubmit={sendMessage}
 				>
+
 					<ChatInput
 						value={input}
 						onChange={(e) => setInput(e.target.value)}
@@ -257,9 +257,10 @@ export default function ChatSupport() {
 						className="min-h-12 resize-none rounded-lg bg-background border-0 p-3 shadow-none focus-visible:ring-0"
 					/>
 						<div className="flex items-center p-3 pt-0">
-							<Button variant="ghost" size="icon">
+							<Button type="button" variant="ghost" size="icon" onClick={handleImageUploadButtonClick}>
 								<Paperclip className="size-4" />
 								<span className="sr-only">Attach file</span>
+								<input ref={imageInputRef} className="hidden" type="file" accept="image/*" onChange={handleImageUpload}></input>
 							</Button>
 
 							<Button variant="ghost" size="icon">
@@ -279,13 +280,6 @@ export default function ChatSupport() {
 						</div>
 					</form>
 				</div>
-				
-				{/* <div className="flex relative gap-2">
-					<ChatInput className="min-h-12 bg-background shadow-none" />
-					<Button size="icon" className="absolute top-1/2 right-2 transform size-8 -translate-y-1/2">
-						<Send className="size-4" />
-					</Button>
-				</div> */}
 			</ExpandableChatFooter>
 		</ExpandableChat>
 	);
