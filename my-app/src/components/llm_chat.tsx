@@ -167,7 +167,7 @@ export default function ChatSupport() {
 	}
 
 	return (
-		<ExpandableChat size="sm" position="bottom-right">
+		<ExpandableChat size="md" position="bottom-right">
 			<ExpandableChatHeader className="flex-col text-center justify-center">
 				<h1 className="text-xl font-semibold">Chat with our AI ✨</h1>
 				<p>Ask any question for our AI to answer</p>
@@ -271,7 +271,7 @@ export default function ChatSupport() {
 							<Button type="button" variant="ghost" size="icon" onClick={handleImageUploadButtonClick}>
 								<Paperclip className="size-4" />
 								<span className="sr-only">Attach file</span>
-								<input ref={imageInputRef} className="hidden" type="file" accept="image/*, application/pdf" onChange={handleImageUpload}></input>
+								<input ref={imageInputRef} className="hidden" type="file" accept="image/*, application/pdf, video/mp4" onChange={handleImageUpload}></input>
 							</Button>
 
 							<Button variant="ghost" size="icon">

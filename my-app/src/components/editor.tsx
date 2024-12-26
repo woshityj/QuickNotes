@@ -105,52 +105,26 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
 
             let summarizedContent = "";
 
-            const summaryBlock: PartialBlock = {
-                type: "paragraph",
-                content: [{ type: "text", text: "Generating summary...", styles: { bold: true }}],
-            };
-
-            const insertedBlocks = editor.insertBlocks([summaryBlock], currentBlock, "after");
-            const summaryBlockId = insertedBlocks[0].id;
+            toast.loading("Generating summary...");
 
             if (documentContent !== undefined || documentContent !== "") {
                 const summarizeContentResult = await summarizeContent({content: documentContent});
                 summarizedContent = summarizeContentResult.data;
-            }
+                
+                const summaryBlock: PartialBlock = {
+                    type: "paragraph",
+                    content: [{ type: "text", text: summarizedContent, styles: {} }],
+                }
 
-            editor.updateBlock(summaryBlockId, {
-                content: summarizedContent
-            });
+                editor.insertBlocks([summaryBlock], currentBlock, "after");
+                
+                toast.dismiss();
+                toast.success("Successfully generated summary");
+            }
         },
         group: "QuickNotes AI",
         icon: <Brain size={18} />,
         subtext: "Used to generate a summary of the given text"
-    });
-
-    const generateQueryItem = (editor: BlockNoteEditor) => ({
-        title: "Ask QuickNotes AI a question",
-        onItemClick: () => {
-
-            const currentBlock = editor.getTextCursorPosition().block;
-
-            let content = "";
-
-            editor.forEachBlock((block: Block) => {
-
-                let retrievedContent = getBlockTextAsserted(block);
-
-                if (retrievedContent !== undefined) {
-                    content += retrievedContent + "\n";
-                }
-
-                return true;
-            });
-
-            console.log(content);
-        },
-        group: "QuickNotes AI",
-        icon: <Brain size={18} />,
-        subtext: "Ask QuickNotes AI a question to generate a answer in a concise summary"
     });
 
     function getBlockTextAsserted(block: Block): string | undefined {
@@ -161,7 +135,6 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
         ...getDefaultReactSlashMenuItems(editor),
         speechToTextItem(editor),
         generateSummaryItem(editor),
-        generateQueryItem(editor)
     ];
 
     // const editor: BlockNoteEditor = useBlockNote({

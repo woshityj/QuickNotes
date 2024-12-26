@@ -1,7 +1,7 @@
 # from flask import Flask, request, jsonify
 # from llm_model import load_peft_model, load_multi_modal_llm, text_summarization, text_summarization_with_rag_validation, custom_chat, text_with_image, custom_chat_multi_modal_llm
-from llm_multi_model import loadMultiModalLLM, textSummarizationMultiModal, customChatWithMultiModelLLM, imagesWithMultiModelLLM
-from document_processing import convertBase64PDFToImages
+from llm_multi_model import loadMultiModalLLM, textSummarizationMultiModal, customChatWithMultiModelLLM, imagesWithMultiModelLLM, customChatVideoTranscriptWithMultiModelLLM
+from document_processing import convertBase64PDFToImages, convertVideoToText
 
 from fastapi import FastAPI, UploadFile, File, Form, Depends
 from fastapi.encoders import jsonable_encoder
@@ -95,6 +95,28 @@ def check_file_type_pdf(file: IO):
             
     return True
 
+def check_file_type_video(file: IO):
+    FILE_SIZE = 52428800 # 50MB
+
+    accepted_video_types = ["mp4"]
+
+    file_info = filetype.guess(file)
+    if file_info is None:
+        return False
+    
+    detected_file_type = file_info.extension.lower()
+    if (detected_file_type not in accepted_video_types):
+        return False
+    
+    file.seek(0, 2)
+    real_file_size = file.tell()
+    file.seek(0)
+
+    if (real_file_size > FILE_SIZE):
+        return False
+    
+    return True
+
 @app.post("/summarize")
 async def summarize(content: Content):
     try:
@@ -107,7 +129,7 @@ async def summarize(content: Content):
 
 @app.post("/chat")
 async def chat(messages: Annotated[str, Form()], file: Annotated[Optional[UploadFile], File()] = None):
-    # try:
+    try:
         print(messages)
         if (file is None):
             messages_json = json.loads(messages)
@@ -130,10 +152,16 @@ async def chat(messages: Annotated[str, Form()], file: Annotated[Optional[Upload
 
                 return reply
             
+            elif (check_file_type_video(bytes_object)):
+                video_transcript = await convertVideoToText(bytes_object)
+                reply = await customChatVideoTranscriptWithMultiModelLLM(llm_model, tokenizer, messages_json[-1]['content'], video_transcript)
+
+                return reply
+            
             raise HTTPException(status_code = status.HTTP_415_UNSUPPORTED_MEDIA_TYPE, detail = "Invalid file type")
     
-    # except Exception as e:
-        # return HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    except Exception as e:
+        return HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
     
 @app.post("/image")
 async def image(text: Annotated[str, Form()], image: UploadFile | None = None):
