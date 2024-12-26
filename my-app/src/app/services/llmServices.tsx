@@ -21,3 +21,25 @@ export async function summarizeContent({content}: {content: string}) {
         console.log(err);
     }
 }
+
+export async function elaborateText({content}: {content: string}) {
+    try {
+        const response = await fetch(`${backendURL}/llm/elaborate`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "Authorization": localStorage.getItem("AuthorizationToken") || "",
+            },
+            body: JSON.stringify({ content }),
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            return response.json();
+        }
+        
+    } catch (err) {
+        console.log(err);
+    }
+}

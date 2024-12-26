@@ -1,6 +1,6 @@
 # from flask import Flask, request, jsonify
 # from llm_model import load_peft_model, load_multi_modal_llm, text_summarization, text_summarization_with_rag_validation, custom_chat, text_with_image, custom_chat_multi_modal_llm
-from llm_multi_model import loadMultiModalLLM, textSummarizationMultiModal, customChatWithMultiModelLLM, imagesWithMultiModelLLM, customChatVideoTranscriptWithMultiModelLLM
+from llm_multi_model import loadMultiModalLLM, textSummarizationMultiModal, customChatWithMultiModelLLM, imagesWithMultiModelLLM, customChatVideoTranscriptWithMultiModelLLM, textElaborationMultiModel
 from document_processing import convertBase64PDFToImages, convertVideoToText
 
 from fastapi import FastAPI, UploadFile, File, Form, Depends
@@ -123,6 +123,17 @@ async def summarize(content: Content):
         summarization = await textSummarizationMultiModal(llm_model, tokenizer, content.content)
 
         return {"data": summarization}
+    
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.post("/elaborate")
+async def elaborate(content: Content):
+    try:
+        elaboration = await textElaborationMultiModel(llm_model, tokenizer, content.content)
+
+        print(elaboration)
+        return {"data": elaboration}
     
     except Exception as e:
         return {"error": str(e)}

@@ -8,10 +8,10 @@ import { useTheme } from "next-themes";
 import { useEdgeStore } from "@/lib/edgestore";
 
 import "@blocknote/mantine/style.css";
-import { Brain, Mic } from "lucide-react";
+import { Brain, Mic, Wand } from "lucide-react";
 import { string } from "zod";
 import { useEffect, useRef, useState } from "react";
-import { summarizeContent } from "@/app/services/llmServices";
+import { summarizeContent, elaborateText } from "@/app/services/llmServices";
 
 import 'regenerator-runtime/runtime';
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
@@ -42,10 +42,6 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
 
         return response.url;
     }
-
-    const transcribeVideoItem = (editor: BlockNoteEditor) => ({
-        
-    })
 
     const speechToTextItem = (editor: BlockNoteEditor) => ({
         title: "Speech to Text",
@@ -120,12 +116,58 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
                 
                 toast.dismiss();
                 toast.success("Successfully generated summary");
+            } else {
+                toast.dismiss();
+                toast.error("Failed to generate summary");
             }
         },
         group: "QuickNotes AI",
         icon: <Brain size={18} />,
         subtext: "Used to generate a summary of the given text"
     });
+
+    const elaborateTextItem = (editor: BlockNoteEditor) => ({
+        title: "Elaborate Text and Continue Writing",
+        onItemClick: async () => {
+
+            const currentBlock = editor.getTextCursorPosition().block;
+
+            let documentContent = "";
+
+            editor.forEachBlock((block: Block) => {
+                const blockText = getBlockTextAsserted(block);
+                if (blockText !== undefined) {
+                    documentContent += blockText + "\n";
+                }
+                return true;
+            });
+
+            toast.loading("Elaborating text...");
+
+            if (documentContent !== undefined || documentContent !== "") {
+                const elaborateTextResult = await elaborateText({content: documentContent});
+                const elaboratedContent = elaborateTextResult.data;
+
+                const blocksFromMarkdown = await editor.tryParseMarkdownToBlocks(elaboratedContent)
+
+                // const elaboratedBlock: PartialBlock = {
+                //     type: "paragraph",
+                //     content: [{ type: "text", text: elaboratedContent, styles: {} }]
+                // }
+
+                editor.insertBlocks(blocksFromMarkdown, currentBlock, "after");
+
+                toast.dismiss();
+                toast.success("Successfully elaborated text");
+            } else {
+                toast.dismiss();
+                toast.error("Failed to elaborate text");
+            }
+        },
+        group: "QuickNotes AI",
+        icon: <Wand size={18} />,
+        subtext: "Used to elaborate the given text"
+    })
 
     function getBlockTextAsserted(block: Block): string | undefined {
         return (block.content as Array<{text?: string}>)?.[0]?.text;
@@ -135,6 +177,7 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
         ...getDefaultReactSlashMenuItems(editor),
         speechToTextItem(editor),
         generateSummaryItem(editor),
+        elaborateTextItem(editor)
     ];
 
     // const editor: BlockNoteEditor = useBlockNote({

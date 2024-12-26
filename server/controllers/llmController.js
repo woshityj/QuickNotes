@@ -17,6 +17,20 @@ export async function summarizeDocument(req, res) {
     }
 }
 
+export async function elaborateDocument(req, res) {
+    try {
+        const content = req.body['content'];
+
+        const elaboratedContent = await axios.post('http://localhost:8000/elaborate', {content: content});
+
+        res.status(200).send(elaboratedContent.data);
+        
+    } catch (err) {
+        console.log(err);
+        res.status(500).send('Server Error');
+    }
+}
+
 export async function chat(req, res) {
     try {
         const file = req.file
