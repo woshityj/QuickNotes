@@ -235,7 +235,7 @@ your reply should be: The user text is not relevant with the retrieval text. Sta
 async def custom_chat_multi_modal_llm(llm_model: FastVisionModel, tokenizer: AutoTokenizer, messages: list[Message]) -> str:
     dialogue_template = [
         {
-            "role": "user",
+            "role": "system",
             "content": "You are a helpful assistant. Answer all questions to the best of your ability in English."
         }
     ]

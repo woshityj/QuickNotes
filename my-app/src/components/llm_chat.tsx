@@ -84,12 +84,13 @@ export default function ChatSupport() {
 		setIsGenerating(true);
 
 		try {
+			const formData = new FormData();
+			formData.append("messages", JSON.stringify(newMessages));
+			formData.append("file", selectedImage);
+
 			const response = await fetch(`${backendURL}/llm/chat`, {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({ messages: newMessages, file: base64 }),
+				body: formData
 			});
 
 			if (!response.ok) {
@@ -149,6 +150,19 @@ export default function ChatSupport() {
 			const base64String = reader.result as string;
 			const plainBase64 = base64String.split(',')[1];
 			setBase64(plainBase64);
+		}
+	}
+
+	const handleClearImage = () => {
+		if (preview) {
+			URL.revokeObjectURL(preview);
+		}
+		setPreview(null);
+		setSelectedImage(null);
+		setBase64(null);
+
+		if (imageInputRef.current) {
+			imageInputRef.current.value = "";
 		}
 	}
 
@@ -233,10 +247,7 @@ export default function ChatSupport() {
 								variant="ghost"
 								size="icon"
 								className="absolute top-1 right-1"
-								onClick={() => {
-									setPreview(null);
-									setSelectedImage(null);
-								}}>
+								onClick={handleClearImage}>
 								<X className="size-4"></X>
 							</Button>
 						</div>
@@ -260,7 +271,7 @@ export default function ChatSupport() {
 							<Button type="button" variant="ghost" size="icon" onClick={handleImageUploadButtonClick}>
 								<Paperclip className="size-4" />
 								<span className="sr-only">Attach file</span>
-								<input ref={imageInputRef} className="hidden" type="file" accept="image/*" onChange={handleImageUpload}></input>
+								<input ref={imageInputRef} className="hidden" type="file" accept="image/*, application/pdf" onChange={handleImageUpload}></input>
 							</Button>
 
 							<Button variant="ghost" size="icon">

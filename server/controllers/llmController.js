@@ -1,4 +1,7 @@
 import axios from "axios";
+import fs from "fs";
+import path from "path";
+import FormData from "form-data";
 
 export async function summarizeDocument(req, res) {
     try {
@@ -16,19 +19,32 @@ export async function summarizeDocument(req, res) {
 
 export async function chat(req, res) {
     try {
-        const messages = req.body['messages'];
-        const file = req.body['file'];
-        console.log(file);
+        const file = req.file
+        const formData = new FormData();
+        
+        formData.append('messages', req.body.messages);
 
-        const newMessages = await axios.post('http://localhost:8000/chat', {messages: messages, file: file}, {
+        if (file !== undefined) {
+            console.log(file);
+            const fileStream = fs.createReadStream(file.path);
+            formData.append('file', fileStream, {
+                filename: file.originalname,
+                contentType: file.mimetype
+            });
+        }
+
+        const newMessages = await axios.post('http://127.0.0.1:8000/chat', formData, {
             headers: {
-                'Content-Type': 'application/json',
-                'Accept': '*/*'
-            }
+                ...formData.getHeaders()
+            },
         }
         );
 
-        console.log(newMessages.data);
+        if (req.file?.path) {
+            fs.unlinkSync(file.path);
+        }
+
+        // console.log(newMessages.data);
 
         res.status(200).send(newMessages.data);
     } catch (err) {
