@@ -107,14 +107,15 @@ Pick the correct option A, B, C without other words.
 Claim: {claim}
 Evidence: {evidence}"""
 
-zero_shot_edit_response = """Given a document containing factual errors, please correct the errors in the document depending on a corresponding list of factually true claims. Note that preserve the linguistic features and style of the original document, just correct factual errors.
-Using the document as a reference, correct the factual errors in the document based on the provided true claims. Return only the revised document.
+zero_shot_edit_response = """
+Given a document containing factual errors, please correct the errors in the document depending on a corresponding list of factually true claims. Note that preserve the linguistic features and style of the original document, just correct factual errors.
 
 document: {response}
 
 true claims: {claims}
 
-revised document: """
+revised document:
+"""
 
 zero_shot_edit_response_given_question = """Given a question, and an answer containing factual errors, please correct the errors in the document depending on a corresponding list of factually true claims. Note that preserve the linguistic features and style of the original document, just correct factual errors.
 
