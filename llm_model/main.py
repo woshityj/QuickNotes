@@ -1,7 +1,8 @@
 # from flask import Flask, request, jsonify
 # from llm_model import load_peft_model, load_multi_modal_llm, text_summarization, text_summarization_with_rag_validation, custom_chat, text_with_image, custom_chat_multi_modal_llm
-from llm_multi_model import loadMultiModalLLM, textSummarizationMultiModal, customChatWithMultiModelLLM, imagesWithMultiModelLLM, customChatVideoTranscriptWithMultiModelLLM, textElaborationMultiModel
+from llm_multi_model import loadMultiModalLLM, textSummarizationMultiModal, customChatWithMultiModelLLM, imagesWithMultiModelLLM, customChatVideoTranscriptWithMultiModelLLM, textElaborationMultiModel, question_and_answer_with_rag
 from document_processing import convertBase64PDFToImages, convertVideoToText
+from fact_checking_pipeline import fact_checking_pipeline, load_question_duplicate_model, load_passage_ranker
 
 from fastapi import FastAPI, UploadFile, File, Form, Depends
 from fastapi.encoders import jsonable_encoder
@@ -18,10 +19,7 @@ from PIL import Image
 
 from typing import Annotated, IO, Optional
 import filetype
-
-import ast
-
-import base64
+import os
 
 class Content(BaseModel):
     content: str
@@ -33,9 +31,22 @@ class Message(BaseModel):
 class Messages(BaseModel):
     messages: list[Message]
 
+
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_API_KEY"] = "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"
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
+
+# LANGCHAIN_TRACING_V2=true
+LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
+# LANGCHAIN_API_KEY="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"
+LANGCHAIN_PROJECT="capstone"
+HUGGING_FACE_API_TOKEN = "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"
+
 app = FastAPI()
 # llm_model, tokenizer = load_peft_model()
 llm_model, tokenizer = loadMultiModalLLM()
+question_duplicate_model, question_duplicate_tokenizer = load_question_duplicate_model()
+passage_ranker = load_passage_ranker()
 
 def convert_messages_to_json(messages: List[Message]) -> str:
 
@@ -126,6 +137,19 @@ async def summarize(content: Content):
     
     except Exception as e:
         return {"error": str(e)}
+    
+@app.post("/summarize-fact-check")
+async def summarize_with_fact_check_pipeline(content: Content):
+    try:
+        summarized_text = await textSummarizationMultiModal(llm_model, tokenizer, content.content)
+
+        revised_summarized_text = await fact_checking_pipeline(summarized_text, llm_model, tokenizer, question_duplicate_model, question_duplicate_tokenizer, passage_ranker)
+
+        return {"data": revised_summarized_text}
+
+    except Exception as e:
+        return {"error": str(e)}
+
 
 @app.post("/elaborate")
 async def elaborate(content: Content):
@@ -190,6 +214,16 @@ async def image(text: Annotated[str, Form()], image: UploadFile | None = None):
     except Exception as e:
         return {"error": str(e)}
 
+@app.post("/question-answer-with-rag")
+async def question_answer_with_rag(content: Content):
+    try:
+
+        response = await question_and_answer_with_rag(llm_model, tokenizer, content.content)
+
+        return {"data": response}
+    
+    except Exception as e:
+        return HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
 
 if __name__ == '__main__':
-    uvicorn.run(app, host = "localhost", port = 8000, reload = False)
+    uvicorn.run(app, host = "localhost", port = 8000, reload = False, log_level = "info")

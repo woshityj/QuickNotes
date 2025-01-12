@@ -1,7 +1,7 @@
 "use client";
 
 import { createDocument } from "@/app/services/documentServices";
-import { reAuthenticateUser } from "@/app/utils/authentication";
+import { isTokenExpired, refreshToken } from "@/app/utils/authentication";
 import { backendURL } from "@/app/utils/constants";
 import PrimaryButton from "@/components/primary_button";
 import { PlusCircle } from "lucide-react";
@@ -35,6 +35,31 @@ export default function DocumentPage() {
 		
 		createDocumentMutate.mutate({});
 	}
+
+	async function reAuthenticateUser() {
+	
+		if (localStorage.getItem('AuthorizationToken')) {
+			const token = localStorage.getItem('AuthorizationToken');
+			if (isTokenExpired(token)) {
+				console.log("Token has expired, refreshing token...");
+				localStorage.removeItem('AuthorizationToken');
+				await refreshToken();
+				window.location.reload();
+	
+				if (localStorage.getItem('AuthorizationToken') == null) {
+					toast.warning("Login has expired, please login again.");
+					router.push("/login");
+				}
+			}
+		} else {
+			toast.warning("Login has expired, please login again.");
+			router.push("/login");
+		}
+	}
+
+	useEffect(() => {
+		reAuthenticateUser();
+	}, [])
 
 	return (
 		<div className="h-full flex flex-col items-center justify-center space-y-4">

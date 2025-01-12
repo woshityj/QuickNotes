@@ -138,3 +138,9 @@ llm_model/unsloth_compiled_cache
 llm_model/main.exp
 llm_model/main.lib
 llm_model/main.obj
+
+llm_model/chroma_db
+llm_model/datasets/*
+llm_model/data
+llm_model/generated_results
+llm_model/generated_results/*

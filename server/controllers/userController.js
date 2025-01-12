@@ -14,13 +14,15 @@ export async function getUserId(authorizationToken) {
         let user = await UserItem.findOne({ _id: userId });
 
         if (!user) {
-            return res.status(400).json({ msg: "Failed to get user."});
+            throw("Failed to get user.");
+            // return res.status(400).json({ msg: "Failed to get user."});
         }
 
         return user;
     } catch (err) {
         console.log(err.message);
-        res.status(500).send('Server Error');
+        throw("Server Error"); 
+        // res.status(500).send('Server Error');
     }
 }
 
@@ -100,7 +102,7 @@ export async function loginUser(req, res) {
             }
         };
 
-        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: 15 });
+        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: '5s' });
         const refreshToken = jwt.sign(payload, jwtToken, { expiresIn: '1d' });
 
         res.cookie('refreshToken', refreshToken, { httpOnly: false, sameSite: 'Lax', secure: false })

@@ -3,7 +3,7 @@ import { backendURL } from "./constants";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-function isTokenExpired(token?: string | null): boolean {
+export function isTokenExpired(token?: string | null): boolean {
     if (!token) return true;
 
     try {
@@ -17,7 +17,7 @@ function isTokenExpired(token?: string | null): boolean {
     }
 }
 
-async function refreshToken() {
+export async function refreshToken() {
     try {
         const response = await fetch(`${backendURL}/users/refresh`, {
             method: "POST",
@@ -35,27 +35,5 @@ async function refreshToken() {
 
     } catch (err) {
         console.log(err);
-    }
-}
-
-export async function reAuthenticateUser() {
-
-    const router = useRouter();
-    console.log("testing");
-
-    if (localStorage.getItem('AuthorizationToken')) {
-        const token = localStorage.getItem('AuthorizationToken');
-        if (isTokenExpired(token)) {
-            localStorage.removeItem('AuthorizationToken');
-            await refreshToken();
-
-            if (localStorage.getItem('AuthorizationToken') == null) {
-                toast.warning("Login has expired, please login again.");
-                router.push("/login");
-            }
-        }
-    } else {
-        toast.warning("Login has expired, please login again.");
-        router.push("/login");
     }
 }

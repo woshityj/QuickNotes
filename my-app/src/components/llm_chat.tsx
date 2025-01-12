@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/chat/expandable-chat";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import { Button } from "./ui/button";
-import { CopyIcon, CornerDownLeft, Mic, Paperclip, RefreshCcw, Send, Volume2, X } from "lucide-react";
+import { CopyIcon, CornerDownLeft, Globe, Mic, Paperclip, RefreshCcw, Send, Volume2, X } from "lucide-react";
 import { useChat } from "ai/react";
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
@@ -23,6 +23,9 @@ import remarkGfm from "remark-gfm";
 import CodeDisplayBlock from "./code-display-block";
 import { backendURL } from "@/app/utils/constants";
 import { toast } from "sonner";
+import { Checkbox } from "./ui/checkbox";
+import { Toggle } from "./ui/toggle";
+import { questionAnswerWithRag } from "@/app/services/llmServices";
 
 
 const ChatAiIcons = [
@@ -55,6 +58,8 @@ export default function ChatSupport() {
 	const [input, setInput] = useState('')
 	const [isLoading, setIsLoading] = useState(false);
 	const [isGenerating, setIsGenerating] = useState(false);
+	
+	const [ragEnabled, setRagEnabled] = useState(false);
 
 	const imageInputRef = useRef<HTMLInputElement>(null);
 	const messagesRef = useRef<HTMLDivElement>(null);
@@ -78,29 +83,41 @@ export default function ChatSupport() {
 		e.preventDefault();
 
 		const newMessages = [...messages, { role: 'user' as 'user', content: input }];
+		const userMessage = input;
 		setMessages(newMessages);
 		setInput('');
 		setIsLoading(true);
 		setIsGenerating(true);
 
 		try {
-			const formData = new FormData();
-			formData.append("messages", JSON.stringify(newMessages));
-			formData.append("file", selectedImage);
 
-			const response = await fetch(`${backendURL}/llm/chat`, {
-				method: "POST",
-				body: formData
-			});
+			// If RAG is enabled, only send the message to the RAG model
+			if (ragEnabled) {
+				const questionAnswerWithRagResult = await questionAnswerWithRag({ content: userMessage });
 
-			if (!response.ok) {
-				throw new Error('Network response was not ok');
+				const answer = questionAnswerWithRagResult.data;
+
+				setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: answer } ]);
 			}
+			// If RAG is not enabled, send the messages and file to the LLM model
+			else {
+				const formData = new FormData();
+				formData.append("messages", JSON.stringify(newMessages));
+				formData.append("file", selectedImage);
 
-			const data = await response.text();
+				const response = await fetch(`${backendURL}/llm/chat`, {
+					method: "POST",
+					body: formData
+				});
 
-			setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: data } ]);
+				if (!response.ok) {
+					throw new Error('Network response was not ok');
+				}
 
+				const data = await response.text();
+
+				setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: data} ]);
+			}
 		} catch (error) {
 			console.log("Error sending message:", error);
 
@@ -138,8 +155,16 @@ export default function ChatSupport() {
 		if (!target.files) return;
 		const file = target.files[0];
 		
-		const imageUrl = URL.createObjectURL(file);
-		setPreview(imageUrl);
+		if (file.type.split("/")[0] === "image") {
+			const imageUrl = URL.createObjectURL(file);
+			setPreview(imageUrl);
+		} else if (file.type.split("/")[0] === "video") {
+			setPreview("/static/images/video_png.png");
+		} else {
+			setPreview("/static/images/pdf_icon.png");
+		}
+		// const imageUrl = URL.createObjectURL(file);
+		// setPreview(imageUrl);
 		setSelectedImage(file);
 
 		const reader = new FileReader();
@@ -171,10 +196,6 @@ export default function ChatSupport() {
 			<ExpandableChatHeader className="flex-col text-center justify-center">
 				<h1 className="text-xl font-semibold">Chat with our AI ✨</h1>
 				<p>Ask any question for our AI to answer</p>
-				<div className="flex gap-2 items-center pt-2">
-					<Button variant="secondary">New Chat</Button>
-					<Button variant="secondary">See FAQ</Button>
-				</div>
 			</ExpandableChatHeader>
 			<ExpandableChatBody>
 				<ChatMessageList ref={messagesRef}>
@@ -242,7 +263,7 @@ export default function ChatSupport() {
 
 				{preview && (
 						<div className="relative mb-2">
-							<img className="w-12 h-12 object-cover rounded-md border" src={preview} alt="Preview Image"></img>
+							<img className="w-12 h-12 object-contain rounded-md border" src={preview} alt="Preview Image"></img>
 							<Button
 								variant="ghost"
 								size="icon"
@@ -274,10 +295,14 @@ export default function ChatSupport() {
 								<input ref={imageInputRef} className="hidden" type="file" accept="image/*, application/pdf, video/mp4" onChange={handleImageUpload}></input>
 							</Button>
 
-							<Button variant="ghost" size="icon">
+							<Button variant="ghost" size="icon" onClick={(event) => event.preventDefault()}>
 								<Mic className="size-4" />
 								<span className="sr-only">Use Microphone</span>
 							</Button>
+
+							<Toggle aria-label="Toggle RAG" pressed = {ragEnabled} onPressedChange={() => setRagEnabled(!ragEnabled)}>
+								<Globe className="h-4 w-4" />
+							</Toggle>
 
 							<Button
 								disabled={!input || isLoading}

@@ -11,7 +11,7 @@ import "@blocknote/mantine/style.css";
 import { Brain, Mic, Wand } from "lucide-react";
 import { string } from "zod";
 import { useEffect, useRef, useState } from "react";
-import { summarizeContent, elaborateText } from "@/app/services/llmServices";
+import { summarizeContent, elaborateText, summarizeContentWithFactCheck } from "@/app/services/llmServices";
 
 import 'regenerator-runtime/runtime';
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
@@ -126,6 +126,49 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
         subtext: "Used to generate a summary of the given text"
     });
 
+    const generateSummaryWithFactCheckItem = (editor: BlockNoteEditor) => ({
+        title: "Generate Summary with Fact Check",
+        onItemClick: async () => {
+
+            const currentBlock = editor.getTextCursorPosition().block;
+
+            let documentContent = "";
+
+            editor.forEachBlock((block: Block) => {
+                const blockText = getBlockTextAsserted(block);
+                if (blockText !== undefined) {
+                    documentContent += blockText + "\n";
+                }
+                return true;
+            });
+
+            let summarizedContent = "";
+
+            toast.loading("Generating summary with fact check...");
+
+            if (documentContent.length !== 0 || documentContent !== "") {
+                const summarizedContentResult = await summarizeContentWithFactCheck({content: documentContent});
+                summarizedContent = summarizedContentResult.data;
+
+                const summaryBlock: PartialBlock = {
+                    type: "paragraph",
+                    content: [{ type: "text", text: summarizedContent, styles: {} }],
+                }
+
+                editor.insertBlocks([summaryBlock], currentBlock, "after");
+
+                toast.dismiss();
+                toast.success("Successfully generated summary with fact check");
+            } else {
+                toast.dismiss();
+                toast.error("Failed to generate summary with fact check");
+            }
+        },
+        group: "QuickNotes AI",
+        icon: <Brain size={18} />,
+        subtext: "Used to generate a summary of the given text with fact check"
+    });
+
     const elaborateTextItem = (editor: BlockNoteEditor) => ({
         title: "Elaborate Text and Continue Writing",
         onItemClick: async () => {
@@ -177,6 +220,7 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
         ...getDefaultReactSlashMenuItems(editor),
         speechToTextItem(editor),
         generateSummaryItem(editor),
+        generateSummaryWithFactCheckItem(editor),
         elaborateTextItem(editor)
     ];
 

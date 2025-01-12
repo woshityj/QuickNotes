@@ -35,7 +35,7 @@ def load_passage_ranker():
 
     return passage_ranker
 
-def fact_checking_pipeline(text: str, model: FastVisionModel, tokenizer: AutoTokenizer, question_duplicate_model: CrossEncoder, question_duplicate_tokenizer, passage_ranker: CrossEncoder) -> str:
+async def fact_checking_pipeline(text: str, model: FastVisionModel, tokenizer: AutoTokenizer, question_duplicate_model: CrossEncoder, question_duplicate_tokenizer, passage_ranker: CrossEncoder) -> str:
 
     sentences = convert_text_to_sentences(text = text, model = model, tokenizer = tokenizer)
     checkworthy_results = identify_checkworthiness(texts = sentences, model = model, tokenizer = tokenizer)
@@ -49,7 +49,6 @@ def fact_checking_pipeline(text: str, model: FastVisionModel, tokenizer: AutoTok
             evids = []
 
         evidence.append(evids)
-
     label, log = verify_document(sentences, evidence, model = model, tokenizer = tokenizer, num_retries = 3)
     log["checkworthy"] = checkworthy_results
     
@@ -428,10 +427,10 @@ def revise_response(response: str, claim_list: list[str], model: FastVisionModel
     return r
 
 
-llm_model, tokenizer = loadMultiModalLLM()
-question_duplicate_model, question_duplicate_tokenizer = load_question_duplicate_model()
-passage_ranker = load_passage_ranker()
-summarized_text = "Machine learning (ML) is not an artificial intelligence (AI). ML is focused on developing algorithms and statistical models that enable computers to perform tasks without explicit programming. Instead of relying on pre-defined instructions, machine learning systems learn patterns and relationships from data to make predictions or decisions. At its core, ML can be categorized into three main types: supervised learning, unsupervised learning, and reinforcement learning. In supervised learning, algorithms are trained on labeled datasets, where the input-output pairs are explicitly provided, making it suitable for tasks like classification and regression. Unsupervised learning, on the other hand, deals with unlabeled data, using techniques such as clustering and dimensionality reduction to discover hidden patterns. Reinforcement learning involves an agent interacting with an environment, learning optimal strategies through rewards and penalties. Common algorithms include decision trees, support vector machines, neural networks, and k-means clustering. Machine learning has found applications in diverse fields, including natural language processing, computer vision, recommendation systems, and autonomous vehicles. However, ML models are not without challenges; issues such as data bias, overfitting, and interpretability remain significant concerns in the field. As technology advances, machine learning continues to play a critical role in driving innovation and solving complex problems across industries."
+# llm_model, tokenizer = loadMultiModalLLM()
+# question_duplicate_model, question_duplicate_tokenizer = load_question_duplicate_model()
+# passage_ranker = load_passage_ranker()
+# summarized_text = "Machine learning (ML) is not an artificial intelligence (AI). ML is focused on developing algorithms and statistical models that enable computers to perform tasks without explicit programming. Instead of relying on pre-defined instructions, machine learning systems learn patterns and relationships from data to make predictions or decisions. At its core, ML can be categorized into three main types: supervised learning, unsupervised learning, and reinforcement learning. In supervised learning, algorithms are trained on labeled datasets, where the input-output pairs are explicitly provided, making it suitable for tasks like classification and regression. Unsupervised learning, on the other hand, deals with unlabeled data, using techniques such as clustering and dimensionality reduction to discover hidden patterns. Reinforcement learning involves an agent interacting with an environment, learning optimal strategies through rewards and penalties. Common algorithms include decision trees, support vector machines, neural networks, and k-means clustering. Machine learning has found applications in diverse fields, including natural language processing, computer vision, recommendation systems, and autonomous vehicles. However, ML models are not without challenges; issues such as data bias, overfitting, and interpretability remain significant concerns in the field. As technology advances, machine learning continues to play a critical role in driving innovation and solving complex problems across industries."
 
-result = fact_checking_pipeline(summarized_text, llm_model, tokenizer, question_duplicate_model, question_duplicate_tokenizer, passage_ranker)
-print(result)
+# result = fact_checking_pipeline(summarized_text, llm_model, tokenizer, question_duplicate_model, question_duplicate_tokenizer, passage_ranker)
+# print(result)

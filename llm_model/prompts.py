@@ -1,13 +1,3 @@
-QUESTION_WITH_RAG_PROMPT = """
-Your task is to answer the question based on the context provided.
-
-Context:
-{context}
-
-Question:
-{question}
-"""
-
 # Fact-Checking Pipeline Prompts
 
 SENTENCES_TO_CLAIMS_PROMPT = """
@@ -20,7 +10,7 @@ decompose("Mary is a five-year old girl, she likes playing piano and she doesn't
 Response:
 ["Mary is a five-year old girl.", "Mary likes playing piano.", "Mary doesn't like cookies."]
 
-Limit the number of claims to the top 10 most important claims. If there are more than 10 claims, return the top 10 most important claims. If there are less than 10 claims, return all the claims.
+Limit the number of claims to the top 5 most important claims. If there are more than 5 claims, return the top 5 most important claims. If there are less than 5 claims, return all the claims.
 Now complete the following, ONLY RESPONSE IN A LIST FORMAT, NO OTHER WORDS!!! START YOUR RESPONSE WITH '[' AND END WITH ']':
 
 User Input:
@@ -126,3 +116,37 @@ document: {response}
 true claims: {claims}
 
 revised document: """
+
+# Prompt for Question and Answer Generation with RAG
+QUESTION_WITH_RAG_PROMPT = """Use the following pieces of context to answer the question at the end.
+If you don't know the answer, just say that you don't know, don't try to make up an answer.
+Use three sentences maximum and keep the answer as concise as possible.
+Always say "thanks for asking!" at the end of the answer.
+
+Context: {context}
+
+Question: {question}
+
+Response: """
+
+TEXT_SUMMARIZATION_PROMPT = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+Summarize the following text
+
+### Input:
+{input_text}
+
+### Response:
+"""
+
+VIDEO_TRANSCRIPT_PROMPT = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+{input_text}
+
+### Input:
+{video_transcript}
+
+### Response:
+"""
