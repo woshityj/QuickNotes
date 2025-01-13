@@ -8,6 +8,7 @@ import { useState } from "react";
 import { toast, Toaster } from "sonner";
 import { backendURL } from "../utils/constants";
 import { cookies } from "next/headers";
+import { login } from "../services/userServices";
 
 export default function Login() {
 
@@ -33,20 +34,26 @@ export default function Login() {
         }
 
         try {
-            const response = await fetch(`${backendURL}/users/login`, {
-                method: "POST",
-                body: JSON.stringify(loginData),
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json",
-                },
-                credentials: 'include'
-            });
+            // const response = await fetch(`${backendURL}/users/login`, {
+            //     method: "POST",
+            //     body: JSON.stringify(loginData),
+            //     headers: {
+            //         Accept: "application/json",
+            //         "Content-Type": "application/json",
+            //     },
+            //     credentials: 'include'
+            // });
+
+            const response = await login(loginData);
 
             if (response.ok) {
                 toast.success("Successfully logged in");
-                let authorizationToken = response.headers.get('Authorization') || "";
-                localStorage.setItem('AuthorizationToken', authorizationToken);
+                const authorizationToken = response.headers.get('Authorization') || "";
+                cookies.set('AuthorizationToken', authorizationToken);
+                console.log(response.headers.get('set-cookie'));
+                console.log(cookies.get('refreshToken'));
+                // let authorizationToken = response.headers.get('Authorization') || "";
+                // localStorage.setItem('AuthorizationToken', authorizationToken);
 
                 const loginRedirectTimer = setTimeout(() => {
                     router.push("/");

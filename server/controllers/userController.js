@@ -102,8 +102,8 @@ export async function loginUser(req, res) {
             }
         };
 
-        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: '5s' });
-        const refreshToken = jwt.sign(payload, jwtToken, { expiresIn: '1d' });
+        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: 15 });
+        const refreshToken = jwt.sign(payload, jwtToken, { expiresIn: 30 });
 
         res.cookie('refreshToken', refreshToken, { httpOnly: false, sameSite: 'Lax', secure: false })
             .header('Authorization', accessToken)
@@ -122,7 +122,6 @@ export async function refreshToken(req, res) {
     }
 
     try {
-
         const decoded = jwt.verify(refreshToken, jwtToken);
         console.log(decoded.user.id);
         const payload = {
@@ -130,9 +129,14 @@ export async function refreshToken(req, res) {
                 id: decoded.user.id
             }
         };
-        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: '1h' });
+        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: 15 });
+        const refToken = jwt.sign(payload, jwtToken, { expiresIn: 30 });
+        
 
-        res.header('Authorization', accessToken)
+        console.log("test");
+        console.log(accessToken);
+        res.cookie('refreshToken', refToken, { httpOnly: false, sameSite: 'Lax', secure: false })
+            .header('Authorization', accessToken)
             .send(decoded.user);
     } catch (err) {
         return res.status(400).send("Invalid refresh token.");

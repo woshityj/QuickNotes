@@ -17,16 +17,19 @@ export function isTokenExpired(token?: string | null): boolean {
     }
 }
 
-export async function refreshToken() {
+export async function refreshToken(refreshToken?: string| null) {
     try {
         const response = await fetch(`${backendURL}/users/refresh`, {
             method: "POST",
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
+                Cookie: `refreshToken=${refreshToken}`,
             },
             credentials: 'include'
         });
+
+        return response;
 
         if (response.ok) {
             let authorizationToken = response.headers.get('Authorization') || "";
@@ -34,6 +37,7 @@ export async function refreshToken() {
         }
 
     } catch (err) {
+        throw err;
         console.log(err);
     }
 }

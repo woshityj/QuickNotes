@@ -5,31 +5,26 @@ import { useCookies } from "next-client-cookies";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { logout } from "@/app/services/userServices";
 
 export default function NavBar() 
 {
     const router = useRouter();
     const cookies = useCookies();
-    const [authorizationToken, setAuthorizationToken] = useState("");
 
-    useEffect(() => {
-        if(localStorage.getItem('AuthorizationToken') != null) {
-            setAuthorizationToken(localStorage.getItem('AuthorizationToken') || "");
-        }
-    }, [authorizationToken]);
+    const [isLoggedIn, setIsLoggedIn] = useState(cookies.get('AuthorizationToken') != null);
 
-
-    const handleLogout = (e: React.ChangeEvent<any>) => {
+    const handleLogout = async (e: React.ChangeEvent<any>) => {
         e.preventDefault();
-
-        if (!localStorage.getItem('AuthorizationToken') != null) {
-            localStorage.removeItem('AuthorizationToken');
+        
+        if (cookies.get('AuthorizationToken') != null) {
+            cookies.remove('AuthorizationToken');
         }
 
         if (cookies.get('refreshToken') != null) {
             cookies.remove('refreshToken');
         }
-
+        
         toast.success("Successfully logged out");
         const logoutRedirectTimeout = setTimeout(() => {
             location.reload();
@@ -66,7 +61,7 @@ export default function NavBar()
                         </div>
                         <div className="flex">
                             {
-                                !authorizationToken
+                                !isLoggedIn
                                 &&
                                 <>
                                 <div className="hover:bg-[#0000000a] mr-3.5 px-2.5 rounded-md">
@@ -79,7 +74,7 @@ export default function NavBar()
                             }
 
                             {
-                                authorizationToken 
+                                isLoggedIn 
                                 &&
                                 <div className="hover:bg-[#0000000a] mr-3.5 px-2.5 rounded-md">
                                     <a onClick={handleLogout} className="text-primary-black font-inter font-medium text-[0.938rem] leading-[1.938rem]">Logout</a>
