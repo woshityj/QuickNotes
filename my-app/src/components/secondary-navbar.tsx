@@ -9,6 +9,7 @@ import { useEffect } from "react";
 import Banner from "./banner";
 import Menu from "./menu";
 import Publish from "./publish";
+import { useCookies } from "next-client-cookies";
 
 interface NavbarProps {
     isCollapsed: boolean;
@@ -18,10 +19,11 @@ interface NavbarProps {
 export default function SecondaryNavbar({isCollapsed, onResetWidth}: NavbarProps) {
 
     const params = useParams();
+    const cookies = useCookies();
 
     const getDocumentMutate = useQuery({
-        queryKey: ["document", "detail", params.documentId],
-        queryFn: () => getDocument(String(params.documentId)),
+        queryKey: ["document", "detail", params.documentId, cookies.get("AuthorizationToken")],
+        queryFn: () => getDocument(String(params.documentId), cookies.get("AuthorizationToken")),
     });
 
     if (getDocumentMutate.isLoading) {

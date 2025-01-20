@@ -8,6 +8,7 @@ import { archiveDocument, createDocument } from "@/app/services/documentServices
 import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem, DropdownMenuSeparator } from "./ui/dropdown-menu";
 import { useRouter } from "next/navigation";
+import { useCookies } from "next-client-cookies";
 
 interface ItemProps {
     id?: string,
@@ -27,6 +28,8 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
     const queryClient = useQueryClient();
 
     const router = useRouter();
+
+    const cookies = useCookies();
 
     const handleExpand = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.stopPropagation();
@@ -52,7 +55,7 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
         event.stopPropagation();
         if (!id) return;
 
-        createDocumentMutate.mutate({ parentDocumentId: id });
+        createDocumentMutate.mutate({ parentDocumentId: id, authorizationToken: cookies.get("AuthorizationToken") });
         if (!expanded) {
             onExpand?.();
         }
@@ -77,7 +80,7 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
         event.stopPropagation();
         if (!id) return;
 
-        archiveDocumentMutate.mutate({ id: id });
+        archiveDocumentMutate.mutate({ id: id, authorizationToken: cookies.get("AuthorizationToken") });
     }
 
     const ChevronIcon = expanded ? ChevronDown : ChevronRight;

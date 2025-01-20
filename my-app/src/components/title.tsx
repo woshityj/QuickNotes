@@ -10,6 +10,7 @@ import { useParams } from "next/navigation";
 import { Spinner } from "./ui/spinner";
 import { useDebounce } from "@uidotdev/usehooks";
 import { Skeleton } from "./ui/skeleton";
+import { useCookies } from "next-client-cookies";
 
 interface TitleProps {
     initialData: Document
@@ -22,6 +23,8 @@ export default function Title({initialData}: TitleProps) {
     
     const [title, setTitle] = useState(initialData?.title || "Untitled");
     const [isEditting, setIsEditting] = useState(false);
+
+    const cookies = useCookies();
 
     const updateDocumentMutate = useMutation({
         mutationFn: updateDocument,
@@ -48,7 +51,8 @@ export default function Title({initialData}: TitleProps) {
             content: initialData.content,
             coverImage: initialData.coverImage,
             icon: initialData.icon,
-            isPublished: initialData.isPublished
+            isPublished: initialData.isPublished,
+            authorizationToken: cookies.get("AuthorizationToken")
         });
     };
 

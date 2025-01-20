@@ -7,12 +7,15 @@ import { createDocumentFromTemplate } from "@/app/services/documentServices";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { FormEvent } from "react";
+import { useCookies } from "next-client-cookies";
 
 export const TemplateItem = ({_id, title}: {_id: string, title: string}) => {
 
     const queryClient = useQueryClient();
 
     const router = useRouter();
+
+    const cookies = useCookies();
 
     const createDocumentFromTemplateMutate = useMutation({
         mutationFn: createDocumentFromTemplate,
@@ -29,7 +32,7 @@ export const TemplateItem = ({_id, title}: {_id: string, title: string}) => {
     function handleCreateDocumentFromTemplate(e: FormEvent) {
         e.preventDefault();
 
-        createDocumentFromTemplateMutate.mutate({_id: _id});
+        createDocumentFromTemplateMutate.mutate({_id: _id, authorizationToken: cookies.get("AuthorizationToken")});
     }
 
     return (

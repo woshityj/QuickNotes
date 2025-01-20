@@ -10,12 +10,15 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useCookies } from "next-client-cookies";
 
 export default function DocumentPage() {
 
 	const queryClient = useQueryClient();
 
 	const router = useRouter();
+
+	const cookies = useCookies();
 
 	const createDocumentMutate = useMutation({
 		mutationFn: createDocument,
@@ -33,7 +36,7 @@ export default function DocumentPage() {
 	function handleCreateNewDocument(e: FormEvent) {
 		e.preventDefault();
 		
-		createDocumentMutate.mutate({});
+		createDocumentMutate.mutate({authorizationToken: cookies.get("AuthorizationToken")});
 	}
 
 	// async function reAuthenticateUser() {

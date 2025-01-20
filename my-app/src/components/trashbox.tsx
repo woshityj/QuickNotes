@@ -8,18 +8,21 @@ import { Search, Trash, Undo } from "lucide-react";
 import { Input } from "./ui/input";
 import ConfirmModal from "./modals/confirm-modal";
 import { useDebounce } from "@uidotdev/usehooks";
+import { useCookies } from "next-client-cookies";
 
 export default function TrashBox () {
     const router = useRouter();
     const params = useParams();
     const queryClient = useQueryClient();
 
+    const cookies = useCookies();
+
     const [search, setSearch] = useState("");
     const debouncedSearch = useDebounce(search, 500);
 
     const { data, status } = useQuery({
-        queryKey: ["documents", debouncedSearch],
-        queryFn: () => getArchivedDocuments(debouncedSearch)
+        queryKey: ["documents", debouncedSearch, cookies.get("AuthorizationToken")],
+        queryFn: () => getArchivedDocuments(debouncedSearch, cookies.get("AuthorizationToken")),
     })
 
     const restoreDocumentMutate = useMutation({
@@ -54,14 +57,14 @@ export default function TrashBox () {
     ) => {
         event.stopPropagation();
 
-        restoreDocumentMutate.mutate({ id: documentId });
+        restoreDocumentMutate.mutate({ id: documentId, authorizationToken: cookies.get("AuthorizationToken") });
     }
 
     const onRemove = (
         documentId: string
     ) => {
 
-        removeDocumentMutate.mutate({ id: documentId });
+        removeDocumentMutate.mutate({ id: documentId, authorizationToken: cookies.get("AuthorizationToken") });
 
         // If user is currently viewing the deleted document, redirect
         // the user back to the documents page.

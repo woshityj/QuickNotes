@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Item } from "./item";
 import { cn } from "@/lib/utils";
 import { FileIcon } from "lucide-react";
+import { useCookies } from "next-client-cookies";
 
 interface DocumentListProps {
     parentDocumentId?: string,
@@ -14,10 +15,12 @@ interface DocumentListProps {
 }
 
 export const DocumentList = ({ parentDocumentId, level = 0}: DocumentListProps) => {
+    const cookies = useCookies();
     const paramts = useParams();
     const router = useRouter();
 
     const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+    const authorizationToken = cookies.get("AuthorizationToken");
 
     const onExpand = (documentId: string) => {
         setExpanded(prevExpanded => ({
@@ -28,7 +31,7 @@ export const DocumentList = ({ parentDocumentId, level = 0}: DocumentListProps) 
 
     const { data, status } = useQuery({
         queryKey: ["documents", parentDocumentId],
-        queryFn: () => getDocuments(parentDocumentId)
+        queryFn: () => getDocuments(authorizationToken, parentDocumentId),
     });
     
     const onRedirect = (documentId: string) => {

@@ -10,6 +10,7 @@ import { removeDocumentCoverImage } from "@/app/services/documentServices";
 import { useParams } from "next/navigation";
 import { useEdgeStore } from "@/lib/edgestore";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCookies } from "next-client-cookies";
 
 interface CoverImageProps {
     url?: string;
@@ -24,6 +25,8 @@ export default function Cover({url, preview}: CoverImageProps) {
     const params = useParams();
 
     const { edgestore } = useEdgeStore();
+
+    const cookies = useCookies();
 
     const removeDocumentCoverImageMutate = useMutation({
         mutationFn: removeDocumentCoverImage,
@@ -40,7 +43,8 @@ export default function Cover({url, preview}: CoverImageProps) {
         }
 
         removeDocumentCoverImageMutate.mutate({
-            _id: String(params.documentId)
+            _id: String(params.documentId),
+            authorizationToken: cookies.get("AuthorizationToken"),
         });
     }
 

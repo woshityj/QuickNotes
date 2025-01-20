@@ -8,6 +8,7 @@ import { ElementRef, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import TextareaAutoSize from "react-textarea-autosize";
 import { useCoverImage } from "@/hooks/use-cover-image";
+import { useCookies } from "next-client-cookies";
 
 interface ToolbarProps {
     initialData: Document,
@@ -23,6 +24,8 @@ export default function Toolbar({ initialData, preview }: ToolbarProps) {
     const coverImage = useCoverImage();
 
     const queryClient = useQueryClient();
+
+    const cookies = useCookies();
 
     const updateDocumentMutate = useMutation({
         mutationFn: updateDocument,
@@ -56,7 +59,8 @@ export default function Toolbar({ initialData, preview }: ToolbarProps) {
         setValue(value);
         updateDocumentMutate.mutate({
             _id: initialData._id,
-            title: value || "Untitled"
+            title: value || "Untitled",
+            authorizationToken: cookies.get("AuthorizationToken")
         });
     };
     
@@ -72,13 +76,15 @@ export default function Toolbar({ initialData, preview }: ToolbarProps) {
     const onIconSelect = (icon: string) => {
         updateDocumentMutate.mutate({
             _id: initialData._id,
-            icon: icon
+            icon: icon,
+            authorizationToken: cookies.get("AuthorizationToken")
         })
     };
 
     const onIconDelete = () => {
         removeDocumentIconMutate.mutate({
-            _id: initialData._id
+            _id: initialData._id,
+            authorizationToken: cookies.get("AuthorizationToken")
         });
     };
 

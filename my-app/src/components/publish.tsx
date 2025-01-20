@@ -12,6 +12,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import { Check, Copy, Globe } from "lucide-react";
+import { useCookies } from "next-client-cookies";
 
 interface PublishProps {
     initialData: Document
@@ -23,6 +24,8 @@ export default function Publish({initialData}: PublishProps) {
     const origin = useOrigin();
     const [copied, setCopied] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const cookies = useCookies();
 
     const url = `${origin}/preview/${initialData._id}`;
 
@@ -43,7 +46,8 @@ export default function Publish({initialData}: PublishProps) {
 
         updateDocumentMutate.mutate({
             _id: initialData._id,
-            isPublished: true
+            isPublished: true,
+            authorizationToken: cookies.get("AuthorizationToken")
         });
     }
 
@@ -52,7 +56,8 @@ export default function Publish({initialData}: PublishProps) {
 
         updateDocumentMutate.mutate({
             _id: initialData._id,
-            isPublished: false
+            isPublished: false,
+            authorizationToken: cookies.get("AuthorizationToken")
         });
     }
 

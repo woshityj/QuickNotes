@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import { LayoutTemplate, MoreHorizontal, Trash } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { createTemplate } from "@/app/services/templateServices";
+import { useCookies } from "next-client-cookies";
 
 interface MenuProps {
     documentId: string
@@ -17,6 +18,7 @@ interface MenuProps {
 export default function Menu({documentId}: MenuProps) {
     const router = useRouter();
     const queryClient = useQueryClient();
+    const cookies = useCookies();
 
     const archiveDocumentMutate = useMutation({
         mutationFn: archiveDocument,
@@ -33,7 +35,7 @@ export default function Menu({documentId}: MenuProps) {
     const onArchive = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.stopPropagation();
         
-        archiveDocumentMutate.mutate({ id: documentId });
+        archiveDocumentMutate.mutate({ id: documentId, authorizationToken: cookies.get("AuthorizationToken") });
         router.push("/documents");
     }
 
@@ -50,8 +52,8 @@ export default function Menu({documentId}: MenuProps) {
     const onSaveTemplate =  async (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
         event.stopPropagation();
 
-        let document = await getDocument(documentId);
-        saveTemplateMutate.mutate({ title: document.title, content: document.content });
+        let document = await getDocument(documentId, cookies.get("AuthorizationToken"));
+        saveTemplateMutate.mutate({ title: document.title, content: document.content, authorizationToken: cookies.get("AuthorizationToken") });
     }
 
     return (

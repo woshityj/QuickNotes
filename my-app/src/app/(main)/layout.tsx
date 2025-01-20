@@ -7,6 +7,8 @@ import React, { useEffect, useState } from "react";
 import { backendURL } from "../utils/constants";
 import SearchCommand from "@/components/search-command";
 import ChatSupport from "@/components/llm_chat";
+import { useCookies } from "next-client-cookies";
+import { getCurrentUser } from "../services/userServices";
 
 type User = {
     id: string;
@@ -15,9 +17,10 @@ type User = {
 };
 
 export default function MainLayout({ children } : { children: React.ReactNode; }) {
-    
+    const cookies = useCookies(); 
+
     const router = useRouter();
-    const [authorizationToken, setAuthorizationToken] = useState<string | null>(null);
+    const [authorizationToken, setAuthorizationToken] = useState(cookies.get("AuthorizationToken") || "");
     
     const [currentUser, setCurrentUser] = useState<User>({
         id: '',
@@ -25,80 +28,66 @@ export default function MainLayout({ children } : { children: React.ReactNode; }
         email: ''
     });
 
-    useEffect(() => {
-        const token = localStorage.getItem("AuthorizationToken");
-        if (token) {
-            setAuthorizationToken(token);
-        } else {
-            router.push("/login");
-        }
-    }, []);
+    // useEffect(() => {
+    //     const token = localStorage.getItem("AuthorizationToken");
+    //     if (token) {
+    //         setAuthorizationToken(token);
+    //     } else {
+    //         router.push("/login");
+    //     }
+    // }, []);
 
-    useEffect(() => {
-        if (!authorizationToken) return;
+    // useEffect(() => {
+    //     if (!authorizationToken) return;
 
-        const isUserAuthenticated = async () => {
-            if (authorizationToken) {
-                try {
-                    const decoded = jwtDecode(authorizationToken);
-                    const currentTime = Date.now() / 1000;
+    //     const isUserAuthenticated = async () => {
+    //         if (authorizationToken) {
+    //             try {
+    //                 const decoded = jwtDecode(authorizationToken);
+    //                 const currentTime = Date.now() / 1000;
     
-                    // If token has expired
-                    if (decoded.exp && (decoded.exp < currentTime || (decoded.exp - currentTime < 300))) {
-                        localStorage.removeItem('AuthorizationToken');
-                        setAuthorizationToken("");
-                        const response = await fetch(`${backendURL}/users/refresh`, {
-                            method: "POST",
-                            headers: {
-                                Accept: "application/json",
-                                "Content-Type": "application/json",
-                            },
-                            credentials: 'include'
-                        });
-                        console.log(response.headers.get("Authorization"));
+    //                 // If token has expired
+    //                 if (decoded.exp && (decoded.exp < currentTime || (decoded.exp - currentTime < 300))) {
+    //                     localStorage.removeItem('AuthorizationToken');
+    //                     setAuthorizationToken("");
+    //                     const response = await fetch(`${backendURL}/users/refresh`, {
+    //                         method: "POST",
+    //                         headers: {
+    //                             Accept: "application/json",
+    //                             "Content-Type": "application/json",
+    //                         },
+    //                         credentials: 'include'
+    //                     });
+    //                     console.log(response.headers.get("Authorization"));
 
-                        if (response.ok) {
-                            console.log("Testing");
-                            const renewedAuthorizationToken = response.headers.get("Authorization") || "";
+    //                     if (response.ok) {
+    //                         console.log("Testing");
+    //                         const renewedAuthorizationToken = response.headers.get("Authorization") || "";
                             
-                            // const newToken = response.headers.get("Authorization");
-                            localStorage.setItem('AuthorizationToken', renewedAuthorizationToken);
-                            setAuthorizationToken(renewedAuthorizationToken);
-                        }
-                    }
-                } catch (err) {
-                    console.log(err);
-                    router.push("/login");
-                }
-            } else {
-                router.push("/login");
-            }
-        }
+    //                         // const newToken = response.headers.get("Authorization");
+    //                         localStorage.setItem('AuthorizationToken', renewedAuthorizationToken);
+    //                         setAuthorizationToken(renewedAuthorizationToken);
+    //                     }
+    //                 }
+    //             } catch (err) {
+    //                 console.log(err);
+    //                 router.push("/login");
+    //             }
+    //         } else {
+    //             router.push("/login");
+    //         }
+    //     }
+    useEffect(() => {
+        const getCurrentUserDetails = async () => {
+            const response = await getCurrentUser(authorizationToken);
 
-        const getCurrentUser = async () => {
-            try {
-                const response = await fetch(`${backendURL}/users`, { 
-                    method: "GET",
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json",
-                        "authorization": authorizationToken
-                    },
-                    credentials: 'include'
-                });
-
-                if (response.ok) {
-                    const user = await response.json();
-                    setCurrentUser({ id: user._id, name: user.name, email: user.email });
-                }
-
-            } catch (err) {
-                console.log(err);
+            if (response.ok) {
+                const user = await response.json();
+                setCurrentUser({ id: user._id, name: user.name, email: user.email });
             }
         }
         
-        isUserAuthenticated();
-        getCurrentUser();
+        getCurrentUserDetails();
     }, [authorizationToken]);
 
     return (

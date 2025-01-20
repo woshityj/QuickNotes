@@ -9,14 +9,14 @@ export type Template = {
     isPublic: boolean
 }
 
-export async function createTemplate({title, content}: {title: string, content: string}) {
+export async function createTemplate({title, content, authorizationToken}: {title: string, content: string, authorizationToken?: string}) {
     try {
         const response = await fetch(`${backendURL}/templates/`, {
             method: "POST",
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "Authorization": localStorage.getItem("AuthorizationToken") || ""
+                "Authorization": authorizationToken || ""
             },
             body: JSON.stringify({title: title, content: content}),
             credentials: 'include'
@@ -31,14 +31,14 @@ export async function createTemplate({title, content}: {title: string, content: 
     }
 }
 
-export async function getTemplates() {
+export async function getTemplates(authorizationToken?: string) {
     try {
         const response = await fetch(`${backendURL}/templates`, {
             method: "GET",
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "Authorization": localStorage.getItem("AuthorizationToken") || ""
+                "Authorization": authorizationToken || ""
             },
             credentials: 'include'
         });

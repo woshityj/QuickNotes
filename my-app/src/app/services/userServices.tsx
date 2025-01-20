@@ -58,3 +58,23 @@ export async function logout() {
         console.log(err);
     }
 }
+
+export async function getCurrentUser(authorizationToken: string) {
+    try {
+        const response = await fetch(`${backendURL}/users`, {
+            method: "GET",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "authorization": authorizationToken
+            },
+            credentials: 'include'
+        });
+
+        return response;
+        
+    } catch (err) {
+        throw(err);
+        console.log(err);
+    }
+}

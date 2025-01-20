@@ -1,5 +1,7 @@
 import { toast } from "sonner";
 import { backendURL } from "../utils/constants";
+import { useCookies } from "next-client-cookies";
+import { cookies } from "next/headers";
 
 export type Document = {
     _id: string,
@@ -13,14 +15,14 @@ export type Document = {
     isPublished: boolean
 };
 
-export async function createDocument({parentDocumentId}: {parentDocumentId?: string}) {
+export async function createDocument({parentDocumentId, authorizationToken}: {parentDocumentId?: string, authorizationToken?: string}) {
 	try {
 		const response = await fetch(`${backendURL}/documents/`, {
 			method: "POST",
 			headers: {
 				Accept: "application/json",
 				"Content-Type": "application/json",
-				"Authorization": localStorage.getItem("AuthorizationToken") || "",
+				"Authorization": authorizationToken || ""
 			},
             body: JSON.stringify({ parentDocument: parentDocumentId }),
 			credentials: 'include',
@@ -35,7 +37,7 @@ export async function createDocument({parentDocumentId}: {parentDocumentId?: str
 	}
 }
 
-export async function getDocuments(parentDocumentId?: string) {
+export async function getDocuments(authorizationToken?: string, parentDocumentId?: string) {
     try {
         let url = parentDocumentId !== undefined ? `${backendURL}/documents/${parentDocumentId}` : `${backendURL}/documents/` 
 
@@ -44,7 +46,7 @@ export async function getDocuments(parentDocumentId?: string) {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "authorization": localStorage.getItem("AuthorizationToken") || "",
+                "authorization": authorizationToken || ""
             },
             credentials: 'include',
         });
@@ -58,7 +60,7 @@ export async function getDocuments(parentDocumentId?: string) {
     }
 }
 
-export async function archiveDocument({id}: {id: string}) {
+export async function archiveDocument({id, authorizationToken}: {id: string, authorizationToken?: string}) {
     try {
         
         const response = await fetch(`${backendURL}/documents/${id}`, {
@@ -66,7 +68,7 @@ export async function archiveDocument({id}: {id: string}) {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "authorization": localStorage.getItem("AuthorizationToken") || ""
+                "authorization": authorizationToken || ""
             },
             credentials: 'include',
             body: JSON.stringify({ id: id }),
@@ -81,7 +83,7 @@ export async function archiveDocument({id}: {id: string}) {
     }
 }
 
-export async function getArchivedDocuments(search: string) {
+export async function getArchivedDocuments(search: string, authorizationToken?: string) {
     try {
         
         let url = search.length === 0 ? `${backendURL}/documents/archived-documents/` : `${backendURL}/documents/archived-documents/${search}`;
@@ -91,7 +93,7 @@ export async function getArchivedDocuments(search: string) {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "authorization": localStorage.getItem("AuthorizationToken") || ""
+                "authorization": authorizationToken || ""
             },
             credentials: 'include'
         });
@@ -104,7 +106,7 @@ export async function getArchivedDocuments(search: string) {
     }
 }
 
-export async function restoreDocument({id}: {id: string}) {
+export async function restoreDocument({id, authorizationToken}: {id: string, authorizationToken?: string}) {
     try {
 
         const response = await fetch(`${backendURL}/documents/archived-documents/${id}`, {
@@ -112,7 +114,7 @@ export async function restoreDocument({id}: {id: string}) {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "authorization": localStorage.getItem("AuthorizationToken") || ""
+                "authorization": authorizationToken || ""
             },
             credentials: 'include',
             body: JSON.stringify({ id: id })
@@ -126,7 +128,7 @@ export async function restoreDocument({id}: {id: string}) {
     }
 }
 
-export async function removeDocument({id}: {id: string}) {
+export async function removeDocument({id, authorizationToken}: {id: string, authorizationToken?: string}) {
     try {
 
         const response = await fetch(`${backendURL}/documents/archived-documents/${id}`, {
@@ -134,7 +136,7 @@ export async function removeDocument({id}: {id: string}) {
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "authorization": localStorage.getItem("AuthorizationToken") || ""
+                "authorization": authorizationToken || ""
             },
             credentials: 'include',
         });
@@ -148,14 +150,14 @@ export async function removeDocument({id}: {id: string}) {
     }
 }
 
-export async function searchDocuments() {
+export async function searchDocuments(authorizationToken?: string) {
     try {
         const response = await fetch(`${backendURL}/documents/search`, {
             method: "GET",
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "authorization": localStorage.getItem("AuthorizationToken") || ""
+                "Authorization": authorizationToken || ""
             },
             credentials: 'include',
         });
@@ -168,14 +170,15 @@ export async function searchDocuments() {
     }
 }
 
-export async function getDocument(documentId: string) {
+export async function getDocument(documentId: string, authorizationToken?: string) {
+
     try {
         const response = await fetch(`${backendURL}/documents/document/${documentId}`, {
             method: "GET",
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "authorization": localStorage.getItem("AuthorizationToken") || "",
+                "Authorization": authorizationToken || ""
             },
             credentials: 'include'
         });
@@ -188,14 +191,15 @@ export async function getDocument(documentId: string) {
     }
 }
 
-export async function updateDocument({_id, title, content, coverImage, icon, isPublished}: {_id?: string, title?: string, content?: string, coverImage?: string, icon?: string, isPublished?: boolean}) {
+export async function updateDocument({_id, title, content, coverImage, icon, isPublished, authorizationToken}: {_id?: string, title?: string, content?: string, coverImage?: string, icon?: string, isPublished?: boolean, authorizationToken?: string}) {
+    
     try {
         const response = await fetch(`${backendURL}/documents/document/${_id}`, {
             method: "PUT",
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "authorization": localStorage.getItem("AuthorizationToken") || ""
+                "Authorization": authorizationToken || ""
             },
             credentials: 'include',
             body: JSON.stringify({ id: _id, title: title, content: content, coverImage: coverImage, icon: icon, isPublished: isPublished }),
@@ -209,14 +213,14 @@ export async function updateDocument({_id, title, content, coverImage, icon, isP
     }
 }
 
-export async function removeDocumentIcon({_id}: {_id: string}) {
+export async function removeDocumentIcon({_id, authorizationToken}: {_id: string, authorizationToken?: string}) {
     try {
         const response = await fetch(`${backendURL}/documents/remove-document-icon/${_id}`, {
             method: "PUT",
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "authorization": localStorage.getItem("AuthorizationToken") || ""
+                "authorization": authorizationToken || ""
             },
             credentials: 'include',
         });
@@ -229,14 +233,14 @@ export async function removeDocumentIcon({_id}: {_id: string}) {
     }
 }
 
-export async function removeDocumentCoverImage({_id}: {_id: string}) {
+export async function removeDocumentCoverImage({_id, authorizationToken}: {_id: string, authorizationToken?: string}) {
     try {
         const response = await fetch(`${backendURL}/documents/remove-document-cover-image/${_id}`, {
             method: "PUT",
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "authorization": localStorage.getItem("AuthorizationToken") || ""
+                "authorization": authorizationToken || ""
             },
             credentials: 'include',
         });
@@ -249,14 +253,14 @@ export async function removeDocumentCoverImage({_id}: {_id: string}) {
     }
 }
 
-export async function createDocumentFromTemplate({_id}: {_id: string}) {
+export async function createDocumentFromTemplate({_id, authorizationToken}: {_id: string, authorizationToken?: string}) {
     try {
         const response = await fetch(`${backendURL}/documents/create-document-from-template/${_id}`, {
             method: "POST",
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "Authorization": localStorage.getItem("AuthorizationToken") || ""
+                "Authorization": authorizationToken || ""
             },
             credentials: 'include',
         });

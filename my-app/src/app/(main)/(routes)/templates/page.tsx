@@ -5,6 +5,7 @@ import SecondaryNavbar from "@/components/secondary-navbar";
 import { TemplateList } from "@/components/template_list";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMediaQuery } from "@uidotdev/usehooks";
+import { useCookies } from "next-client-cookies";
 import { useParams, usePathname } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -13,9 +14,11 @@ import { toast } from "sonner";
 
 export default function TemplatesPage() {
 
+    const cookies = useCookies();
+
     const { data, status } = useQuery({
-        queryKey: ["templates"],
-        queryFn: () => getTemplates()
+        queryKey: ["templates", cookies.get("AuthorizationToken")],
+        queryFn: () => getTemplates(cookies.get("AuthorizationToken")),
     });
 
     return (

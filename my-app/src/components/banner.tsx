@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "./ui/button";
 import ConfirmModal from "./modals/confirm-modal";
+import { useCookies } from "next-client-cookies";
 
 interface BannerProps {
     documentId: string
@@ -15,6 +16,8 @@ export default function Banner({documentId}: BannerProps) {
 
     const router = useRouter();
     const queryClient = useQueryClient();
+    
+    const cookies = useCookies();
 
     const removeDocumentMutate = useMutation({
         mutationFn: removeDocument,
@@ -40,7 +43,7 @@ export default function Banner({documentId}: BannerProps) {
     });
 
     const onRemove = (documentId: string) => {
-        removeDocumentMutate.mutate({ id: documentId });   
+        removeDocumentMutate.mutate({ id: documentId, authorizationToken: cookies.get("AuthorizationToken") });   
 
         router.push("/documents");
     }
@@ -49,7 +52,7 @@ export default function Banner({documentId}: BannerProps) {
         event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
         documentId: string) => {
         event.stopPropagation();
-        restoreDocumentMutate.mutate({ id: documentId });
+        restoreDocumentMutate.mutate({ id: documentId, authorizationToken: cookies.get("AuthorizationToken") });
     }
 
 

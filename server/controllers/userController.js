@@ -28,6 +28,7 @@ export async function getUserId(authorizationToken) {
 
 export async function getUser(req, res) {
     const authorizationToken = req.headers['authorization'];
+    console.log(authorizationToken);
 
     try {
         const decoded = jwt.verify(authorizationToken, jwtToken);
@@ -102,8 +103,8 @@ export async function loginUser(req, res) {
             }
         };
 
-        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: 15 });
-        const refreshToken = jwt.sign(payload, jwtToken, { expiresIn: 30 });
+        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: '1h' });
+        const refreshToken = jwt.sign(payload, jwtToken, { expiresIn: '1d' });
 
         res.cookie('refreshToken', refreshToken, { httpOnly: false, sameSite: 'Lax', secure: false })
             .header('Authorization', accessToken)
@@ -129,8 +130,8 @@ export async function refreshToken(req, res) {
                 id: decoded.user.id
             }
         };
-        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: 15 });
-        const refToken = jwt.sign(payload, jwtToken, { expiresIn: 30 });
+        const accessToken = jwt.sign(payload, jwtToken, { expiresIn: '1h' });
+        const refToken = jwt.sign(payload, jwtToken, { expiresIn: '1d' });
         
 
         console.log("test");

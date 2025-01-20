@@ -3,14 +3,17 @@
 import { getTemplates, Template } from "@/app/services/templateServices";
 import { useQuery } from "@tanstack/react-query";
 import { TemplateItem } from "./template";
+import { useCookies } from "next-client-cookies";
 
 
 
 export const TemplateList = () => {
 
+    const cookies = useCookies();
+
     const { data, status } = useQuery({
-        queryKey: ["templates"],
-        queryFn: () => getTemplates()
+        queryKey: ["templates", ],
+        queryFn: () => getTemplates(cookies.get("AuthorizationToken"))
     });
 
     if (data == undefined) {

@@ -16,13 +16,15 @@ import { useSearch } from "@/hooks/use-search";
 import { CommandInput } from "cmdk";
 import { useQuery } from "@tanstack/react-query";
 import { Document, searchDocuments } from "@/app/services/documentServices";
+import { useCookies } from "next-client-cookies";
 
 export default function SearchCommand() {
     const router = useRouter();
+    const cookies = useCookies();
 
     const { data, status } = useQuery({
         queryKey: ["documents"],
-        queryFn: searchDocuments
+        queryFn: () => searchDocuments(cookies.get("AuthorizationToken")),
     })
 
     const [isMounted, setIsMounted] = useState(false);

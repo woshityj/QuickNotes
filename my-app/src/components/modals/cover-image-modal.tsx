@@ -12,6 +12,7 @@ import { useEdgeStore } from "@/lib/edgestore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateDocument } from "@/app/services/documentServices";
 import { useParams } from "next/navigation";
+import { useCookies } from "next-client-cookies";
 
 export default function CoverImageModal() {
     const params = useParams();
@@ -23,6 +24,8 @@ export default function CoverImageModal() {
     const { edgestore } = useEdgeStore();
 
     const queryClient = useQueryClient();
+
+    const cookies = useCookies();
 
     const updateDocumentMutate = useMutation({
         mutationFn: updateDocument,
@@ -52,7 +55,8 @@ export default function CoverImageModal() {
 
             updateDocumentMutate.mutate({
                 _id: String(params.documentId),
-                coverImage: res.url
+                coverImage: res.url,
+                authorizationToken: cookies.get("AuthorizationToken") 
             });
 
             onClose();

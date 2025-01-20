@@ -5,6 +5,7 @@ import Cover from "@/components/cover";
 import Toolbar from "@/components/toolbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCookies } from "next-client-cookies";
 import dynamic from "next/dynamic";
 import { useMemo } from "react";
 
@@ -15,27 +16,29 @@ interface DocumentIdPageProps {
 }
 
 export default function DocumentIdPage({ params }: DocumentIdPageProps) {
+    const cookies = useCookies();
 
     const Editor = useMemo(() => dynamic(() => import("@/components/editor"), { ssr: false }), []);
 
     const queryClient = useQueryClient();
 
     const getDocumentMutate = useQuery({
-        queryKey: ["document", "detail", params.documentId],
-        queryFn: () => getDocument(params.documentId),
+        queryKey: ["document", "detail", params.documentId, cookies.get("AuthorizationToken")],
+        queryFn: () => getDocument(params.documentId, cookies.get("AuthorizationToken")),
     });
 
     const updateDocumentMutate = useMutation({
         mutationFn: updateDocument,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["document", "detail", params.documentId] });
+            queryClient.invalidateQueries({ queryKey: ["document", "detail", params.documentId, cookies.get("AuthorizationToken")] });
         }
     })
 
     const onChange = (content: string) => {
         updateDocumentMutate.mutate({
             _id: params.documentId,
-            content: content
+            content: content,
+            authorizationToken: cookies.get("AuthorizationToken")
         });
     }
 

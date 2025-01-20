@@ -3,6 +3,7 @@ import { useCookies } from "next-client-cookies";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { backendURL } from "./app/utils/constants";
+import { toast } from "sonner";
 
 const protectedRoutes = ['/documents'];
 const publicRoutes = ['/login', '/register', '/'];
@@ -11,7 +12,7 @@ export async function middleware(request: NextRequest) {
     const cookiesStore = await cookies();
     const token = cookiesStore.get('AuthorizationToken');
     const refToken = cookiesStore.get('refreshToken');
-    console.log(token);
+    // console.log(token);
 
     // If user is logged in
     if (cookiesStore.has('AuthorizationToken')) {
@@ -53,8 +54,12 @@ export async function middleware(request: NextRequest) {
 
     if (protectedRoutes.includes(request.nextUrl.pathname))
     {
+        console.log("Test");
         if (isTokenExpired(token?.value)) {
+            console.log("Expired");
             return NextResponse.redirect(new URL('/login', request.url));
+        } else {
+            return NextResponse.next();
         }
     }
 

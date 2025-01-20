@@ -19,6 +19,7 @@ import TrashBox from "./trashbox";
 import { useSearch } from "@/hooks/use-search";
 import { useSettings } from "@/hooks/use-settings";
 import SecondaryNavbar from "./secondary-navbar";
+import { useCookies } from "next-client-cookies";
 
 type User = {
     id: string;
@@ -45,6 +46,8 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
 
     const queryClient = useQueryClient();
 
+    const cookies = useCookies();
+
     // Mutation to Create New Document
     const createDocumentMutate = useMutation({
         mutationFn: createDocument,
@@ -59,7 +62,7 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
     });
 
     const handleCreateNewDocument = () => {
-        createDocumentMutate.mutate({});
+        createDocumentMutate.mutate({authorizationToken: cookies.get("AuthorizationToken")});
     }
  
     useEffect(() => {
