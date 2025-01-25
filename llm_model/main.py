@@ -140,15 +140,15 @@ async def summarize(content: Content):
     
 @app.post("/summarize-fact-check")
 async def summarize_with_fact_check_pipeline(content: Content):
-    try:
+    # try:
         summarized_text = await textSummarizationMultiModal(llm_model, tokenizer, content.content)
 
         revised_summarized_text = await fact_checking_pipeline(summarized_text, llm_model, tokenizer, question_duplicate_model, question_duplicate_tokenizer, passage_ranker)
 
         return {"data": revised_summarized_text}
 
-    except Exception as e:
-        return {"error": str(e)}
+    # except Exception as e:
+    #     return {"error": str(e)}
 
 
 @app.post("/elaborate")

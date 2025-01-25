@@ -19,11 +19,11 @@ export default function UserItem({ currentUser } : { currentUser: User }) {
     const router = useRouter();
     const cookies = useCookies();
 
-    const handleLogout = (e: React.ChangeEvent<any>) => {
+    const handleLogout = async (e: React.ChangeEvent<any>) => {
         e.preventDefault();
 
-        if (!localStorage.getItem('AuthorizationToken') != null) {
-            localStorage.removeItem("AuthorizationToken");
+        if (cookies.get('AuthorizationToken') != null) {
+            cookies.remove('AuthorizationToken');
         }
 
         if (cookies.get('refreshToken') != null) {
@@ -32,7 +32,7 @@ export default function UserItem({ currentUser } : { currentUser: User }) {
 
         toast.success("Successfully logged out");
         const logoutRedirectTimeout = setTimeout(() => {
-            router.push("/");
+            router.push('/');
         }, 2000);
 
         return () => clearTimeout(logoutRedirectTimeout);
@@ -41,8 +41,8 @@ export default function UserItem({ currentUser } : { currentUser: User }) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <div role="button" className="flex items-center text-sm p-3 w-full hover:bg-primary/5">
-                    <div className="gap-x-2 flex items-center max-w-[150px] w-full">
+                <div role="button" className="flex items-center text-sm p-3 w-full pr-10 hover:bg-primary/5">
+                    <div className="gap-x-2 flex items-center max-w-[480px] w-full">
                         <Avatar className="h-[1.375rem] w-[1.375rem] rounded">
                             <AvatarImage src="/static/images/avatar.jpg"></AvatarImage>
                         </Avatar>

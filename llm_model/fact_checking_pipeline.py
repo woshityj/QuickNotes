@@ -3,6 +3,7 @@ from copy import deepcopy
 from unsloth import FastVisionModel
 from transformers import AutoTokenizer
 from sentence_transformers import CrossEncoder
+from rag import rag_retrieval, load_embeddings_model, load_wikipedia_embeddings_model
 
 from prompts import SENTENCES_TO_CLAIMS_PROMPT, CHECKWORTHY_PROMPT, QGEN_PROMPT, VERIFY_PROMPT, IDENTIFY_STANCE_PROMPT, zero_shot_edit_response_given_question, zero_shot_edit_response, QUESTION_WITH_RAG_PROMPT
 
@@ -12,11 +13,14 @@ import concurrent.futures
 
 import re
 import bs4
+import json
 import nltk
 import spacy
 import torch
 import itertools
 import requests
+
+embeddings_model = load_wikipedia_embeddings_model()
 
 def load_question_duplicate_model():
 
@@ -35,7 +39,7 @@ def load_passage_ranker():
 
     return passage_ranker
 
-async def fact_checking_pipeline(text: str, model: FastVisionModel, tokenizer: AutoTokenizer, question_duplicate_model: CrossEncoder, question_duplicate_tokenizer, passage_ranker: CrossEncoder) -> str:
+def fact_checking_pipeline(text: str, model: FastVisionModel, tokenizer: AutoTokenizer, question_duplicate_model: CrossEncoder, question_duplicate_tokenizer, passage_ranker: CrossEncoder) -> str:
 
     sentences = convert_text_to_sentences(text = text, model = model, tokenizer = tokenizer)
     checkworthy_results = identify_checkworthiness(texts = sentences, model = model, tokenizer = tokenizer)
@@ -43,7 +47,8 @@ async def fact_checking_pipeline(text: str, model: FastVisionModel, tokenizer: A
     evidence = []
     for i, sentence in enumerate(sentences):
         if checkworthy_results[i].lower() == "yes":
-            evidences = get_web_evidences_for_claim(llm_model = model, tokenizer = tokenizer, claim = sentence, question_duplicate_model = question_duplicate_model, question_duplicate_tokenizer = question_duplicate_tokenizer, passage_ranker = passage_ranker)
+            evidences = get_evidences_for_claim_rag(llm_model= model, tokenizer = tokenizer, claim = sentence, question_duplicate_model = question_duplicate_model, question_duplicate_tokenizer = question_duplicate_tokenizer, passage_ranker = passage_ranker)
+            # evidences = get_web_evidences_for_claim(llm_model = model, tokenizer = tokenizer, claim = sentence, question_duplicate_model = question_duplicate_model, question_duplicate_tokenizer = question_duplicate_tokenizer, passage_ranker = passage_ranker)
             evids = [evid["text"] for evid in evidences["aggregated"]]
         else:
             evids = []
@@ -108,6 +113,103 @@ def identify_checkworthiness(texts: list[str], model: FastVisionModel, tokenizer
 
     return results
 
+# Search RAG for evidences based on sentence
+
+def get_evidences_for_claim_rag(llm_model: FastVisionModel, tokenizer: AutoTokenizer, claim: str, question_duplicate_model: CrossEncoder, question_duplicate_tokenizer, passage_ranker: CrossEncoder):
+
+    evidences = dict()
+    evidences["aggregated"] = list()
+
+    questions = []
+    while len(questions) <= 0:
+        questions = run_question_generation(
+            prompt = QGEN_PROMPT.format(claim = claim),
+            model = llm_model,
+            tokenizer = tokenizer,
+            temperature = 0.7,
+            num_rounds = 2
+        )
+
+    questions = list(set(questions))
+
+    if len(questions) > 0:
+        questions = remove_duplicate_questions(question_duplicate_model, questions)
+
+    questions = list(questions)
+    snippets = dict()
+
+    for question in questions:
+        snippets[question] = get_relevant_snippets_rag(question, question_duplicate_tokenizer, passage_ranker, max_search_results_per_query = 5, max_passages_per_search_result_to_return = 3)
+        snippets[question] = deepcopy(sorted(snippets[question], key = lambda snippet: snippet["retrieval_score"], reverse = True)[:5])
+    
+    evidences['question_wise'] = deepcopy(snippets)
+    while len(evidences["aggregated"]) < 5:
+        for key in evidences["question_wise"]:
+            if len(evidences["question_wise"][key]) == 0:
+                print("No evidence found for question: ", key)
+                evidences["aggregated"].append(                    
+                    {
+                        "text": ""
+                    })
+                continue
+            # Take top evidences for each question
+            index = int(len(evidences["aggregated"])/len(evidences["question_wise"]))
+            evidences["aggregated"].append(evidences["question_wise"][key][index])
+            if len(evidences["aggregated"]) >= 5:
+                break
+
+    return evidences
+        
+def get_relevant_snippets_rag(query: str, tokenizer, passage_ranker, timeout = 10, max_search_results_per_query = 5, max_passages_per_search_result_to_return = 2, sentences_per_passage = 5):
+
+    search_results = rag_retrieval(query, embeddings_model, num_results = max_search_results_per_query)
+
+    retrieved_passages = list()
+
+    for result in search_results:
+        retrieved_passages.append(
+            {
+                "text": result['text'],
+                "retrieval_score": result['score']
+            }
+        )
+
+    return retrieved_passages
+
+    # retrieved_passages = list()
+
+    # scores = passage_ranker.predict([(query, p) for p in search_results]).tolist()
+    # passage_scores = list(zip(search_results, scores))
+
+    # # Take the top passages_per_search passages for the current search results
+    # passage_scores.sort(key = lambda x: x[1], reverse = True)
+
+    # relevant_items = list()
+    # for passage_item, score in passage_scores:
+    #     overlap = False
+    #     if len(relevant_items) > 0:
+    #         for item in relevant_items:
+    #             if passage_item[1] >= item[1] and passage_item[1] <= item[2]:
+    #                 overlap = True
+    #                 break
+    #             if passage_item[2] >= item[1] and passage_item[2] <= item[2]:
+    #                 overlap = True
+    #                 break
+
+    #     if not overlap:
+    #         relevant_items.append(deepcopy(passage_item))
+    #         retrieved_passages.append(
+    #             {
+    #                 "text": passage_item,
+    #                 "retrieval_score": score, # Cross-encoder score as retr score
+    #             }
+    #         )
+        
+    #     if len(relevant_items) >= max_passages_per_search_result_to_return:
+    #         break
+    
+    return retrieved_passages
+
 # Search the web for evidences based on the sentence
 
 def get_web_evidences_for_claim(llm_model: FastVisionModel, tokenizer: AutoTokenizer, claim: str, question_duplicate_model: CrossEncoder, question_duplicate_tokenizer, passage_ranker: CrossEncoder):
@@ -149,9 +251,13 @@ def get_web_evidences_for_claim(llm_model: FastVisionModel, tokenizer: AutoToken
                 continue
             # Take top evidences for each question
             index = int(len(evidences["aggregated"])/len(evidences["question_wise"]))
-            # print(evidences['question_wise'])
-            # print(f"Index: {index}")
-            # print(f"Key: {key}")
+            if index >= len(evidences["question_wise"][key]):
+                print("No evidence found for question: ", index)
+                evidences["aggregated"].append(
+                    {
+                        "text": ""
+                    })
+                continue
             evidences["aggregated"].append(evidences["question_wise"][key][index])
             if len(evidences["aggregated"]) >= 5:
                 break
@@ -251,11 +357,11 @@ def get_relevant_snippets(query: str, tokenizer, passage_ranker, timeout = 10, m
     
     return retrieved_passages
 
-def search_google(query: str, num_web_pages: int = 10, timeout: int = 6, save_url: str = '') -> list[str]:
+def search_google(query: str, num_web_pages: int = 1, timeout: int = 6, save_url: str = '') -> list[str]:
 
     query = query.replace(" ", "+")
 
-    USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.14; rv:65.0) Gecko/20100101 Firefox/65.0"
+    USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:65.0) Gecko/20100101 Firefox/65.0"
     # mobile user-agent
     MOBILE_USER_AGENT = "Mozilla/5.0 (Linux; Android 7.0; SM-G930V Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.125 Mobile Safari/537.36"
     headers = {'User-Agent': USER_AGENT}
@@ -268,6 +374,7 @@ def search_google(query: str, num_web_pages: int = 10, timeout: int = 6, save_ur
         urls += re.findall('href="(https?://.*?)"', r.text)
     
     urls = list(set(urls))
+    print(urls)
 
     if not save_url == "":
         with open(save_url, 'w') as file:
@@ -350,6 +457,7 @@ def verify_claim(claim: str, evidences: list[str], model: FastVisionModel, token
 
     results = {}
     user_input = VERIFY_PROMPT.format(claim = claim, evidence = evidences)
+    # print(user_input)
 
     for _ in range(num_retries):
         try:
@@ -427,10 +535,89 @@ def revise_response(response: str, claim_list: list[str], model: FastVisionModel
     return r
 
 
-# llm_model, tokenizer = loadMultiModalLLM()
-# question_duplicate_model, question_duplicate_tokenizer = load_question_duplicate_model()
-# passage_ranker = load_passage_ranker()
+llm_model, tokenizer = loadMultiModalLLM()
+passage_ranker = load_passage_ranker()
+question_duplicate_model, question_duplicate_tokenizer = load_question_duplicate_model()
 # summarized_text = "Machine learning (ML) is not an artificial intelligence (AI). ML is focused on developing algorithms and statistical models that enable computers to perform tasks without explicit programming. Instead of relying on pre-defined instructions, machine learning systems learn patterns and relationships from data to make predictions or decisions. At its core, ML can be categorized into three main types: supervised learning, unsupervised learning, and reinforcement learning. In supervised learning, algorithms are trained on labeled datasets, where the input-output pairs are explicitly provided, making it suitable for tasks like classification and regression. Unsupervised learning, on the other hand, deals with unlabeled data, using techniques such as clustering and dimensionality reduction to discover hidden patterns. Reinforcement learning involves an agent interacting with an environment, learning optimal strategies through rewards and penalties. Common algorithms include decision trees, support vector machines, neural networks, and k-means clustering. Machine learning has found applications in diverse fields, including natural language processing, computer vision, recommendation systems, and autonomous vehicles. However, ML models are not without challenges; issues such as data bias, overfitting, and interpretability remain significant concerns in the field. As technology advances, machine learning continues to play a critical role in driving innovation and solving complex problems across industries."
 
 # result = fact_checking_pipeline(summarized_text, llm_model, tokenizer, question_duplicate_model, question_duplicate_tokenizer, passage_ranker)
 # print(result)
+
+# passage_ranker = load_passage_ranker()
+# query = "What is self attention?"
+# results = get_relevant_snippets_rag(query = query, tokenizer = None, passage_ranker = passage_ranker)
+# print(results)
+
+def load_json_lines(filename):
+    data = []
+    with open(filename, 'r') as file:
+        for line in file:
+            data.append(json.loads(line.strip()))
+    return data
+
+def evaluate_fact_checking_pipeline():
+
+    check_claims_json = load_json_lines("fact_checking_evaluation_data/claims.jsonl")
+
+    factual_labels = []
+
+    for claim in check_claims_json:
+        claim_text = claim["claim"]
+        # print(claim_text)
+        evidences = get_evidences_for_claim_rag(llm_model = llm_model, tokenizer = tokenizer, claim = claim_text, question_duplicate_model = question_duplicate_model, question_duplicate_tokenizer = question_duplicate_tokenizer, passage_ranker = passage_ranker)
+        evids = [evid["text"] for evid in evidences["aggregated"]]
+        # print(evids)
+        result = verify_claim(claim_text, evids, model = llm_model, tokenizer = tokenizer)
+        # print(result)
+        factual_labels.append(result["factuality"])
+        # return factual_labels
+    
+    updated_data = [
+        {**item, 'claim_label': bool_value}
+        for item, bool_value in zip(check_claims_json, factual_labels)
+    ]
+
+    with open("fact_checking_evaluation_data/claims_with_labels.jsonl", 'w') as file:
+        for item in updated_data:
+            file.write(json.dumps(item) + "\n")
+
+    return
+
+def evaluate_normal():
+
+    check_claims_json = load_json_lines("fact_checking_evaluation_data/claims.jsonl")
+
+    factual_labels = []
+
+    for claim in check_claims_json:
+        claim_text = claim["claim"]
+        result = verify_claim(claim_text, [], llm_model, tokenizer)
+        factual_labels.append(result["factuality"])
+    
+    updated_data = [
+        {**item, 'claim_label': bool_value}
+        for item, bool_value in zip(check_claims_json, factual_labels)
+    ]
+
+    with open("fact_checking_evaluation_data/claims_with_labels_without_rag.jsonl", 'w') as file:
+        for item in updated_data:
+            file.write(json.dumps(item) + "\n")
+
+    return
+
+
+check_claims_json = load_json_lines("fact_checking_evaluation_data/claims_with_labels.jsonl")
+
+factual_labels = []
+for claim in check_claims_json:
+    claim_label = claim["claim_label"]
+    factual_labels.append(not claim_label)
+
+updated_data = [
+        {**item, 'claim_label': bool_value}
+        for item, bool_value in zip(check_claims_json, factual_labels)
+    ]
+
+with open("fact_checking_evaluation_data/claims_with_labels_inverted.jsonl", 'w') as file:
+    for item in updated_data:
+        file.write(json.dumps(item) + "\n")

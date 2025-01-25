@@ -144,3 +144,5 @@ llm_model/datasets/*
 llm_model/data
 llm_model/generated_results
 llm_model/generated_results/*
+
+pageviews

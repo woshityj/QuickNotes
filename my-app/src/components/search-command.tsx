@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import {
     CommandDialog,
+    CommandInput,
     CommandEmpty,
     CommandGroup,
     CommandItem,
@@ -13,7 +14,6 @@ import {
 } from "@/components/ui/command";
 
 import { useSearch } from "@/hooks/use-search";
-import { CommandInput } from "cmdk";
 import { useQuery } from "@tanstack/react-query";
 import { Document, searchDocuments } from "@/app/services/documentServices";
 import { useCookies } from "next-client-cookies";
@@ -23,7 +23,7 @@ export default function SearchCommand() {
     const cookies = useCookies();
 
     const { data, status } = useQuery({
-        queryKey: ["documents"],
+        queryKey: ["documents", cookies.get("AuthorizationToken")],
         queryFn: () => searchDocuments(cookies.get("AuthorizationToken")),
     })
 
@@ -50,7 +50,9 @@ export default function SearchCommand() {
         return () => document.removeEventListener("keydown", down);
     }, [toggle]);
 
-    const onSelect = (id: string) => {
+    const onSelect = (value: string) => {
+        const id = value.split("-")[0];
+        
         router.push(`/documents/${id}`);
         onClose();
     }
@@ -68,7 +70,7 @@ export default function SearchCommand() {
                     {data?.map((document: Document) => (
                         <CommandItem
                             key={document._id}
-                            value={`${document._id}`}
+                            value={`${document._id}-${document.title}`}
                             title={document.title}
                             onSelect={onSelect}
                         >
