@@ -62,7 +62,7 @@ npm run build
 
 2. Command to run the Back-End Server via Command Line
 ```shell
-node --env-file=config.env server
+node --env-file=.env server
 ```
 
 3. Command to run the Large Language Model FastAPI Endpoint via Command Line

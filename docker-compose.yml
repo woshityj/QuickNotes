@@ -1,0 +1,55 @@
+version: '1.0'
+services:
+  frontend:
+    image: quicknotes-app
+    build:
+      context: ./my-app
+      target: dev
+      dockerfile: Dockerfile
+    volumes:
+        - .:/my-app
+        - /my-app/node_modules
+        - /my-app/.next
+    environment:
+        - API_ENDPOINT=http://backend:5050
+    ports:
+      - "3000:3000"
+    networks:
+      - next-node
+
+  backend:
+    image: quicknotes-backend
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    volumes:
+        - .:/server
+        - /server/node_modules
+    environment:
+        - ATLAS_URI
+        - jwtSecret
+        - llmAPIEndpoint
+    env_file:
+        - .env
+    ports:
+      - "5050:5050"
+    networks:
+      - next-node
+  
+  llm:
+    image: quicknotes-llm
+    build:
+      context: ./llm_model
+      dockerfile: Dockerfile
+    volumes:
+        - .:/llm_model
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    runtime: nvidia
+    ports:
+      - "8000:8000"
+    networks:
+      - next-node
+
+networks:
+  next-node:

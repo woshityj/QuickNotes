@@ -226,4 +226,4 @@ async def question_answer_with_rag(content: Content):
         return HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
 
 if __name__ == '__main__':
-    uvicorn.run(app, host = "localhost", port = 8000, reload = False, log_level = "info")
+    uvicorn.run(app, host = "0.0.0.0", port = 8000, reload = False, log_level = "info")

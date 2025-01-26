@@ -3,11 +3,14 @@ import fs from "fs";
 import path from "path";
 import FormData from "form-data";
 
+const llmAPIEndpoint = process.env.llmAPIEndpoint || "http://localhost:8000/";
+// const llmAPIEndpoint = "http://localhost:8000/";
+
 export async function summarizeDocument(req, res) {
     try {
         const content = req.body['content'];
         
-        const summarizedContent = await axios.post('http://localhost:8000/summarize', {content: content});
+        const summarizedContent = await axios.post(`${llmAPIEndpoint}summarize`, {content: content});
 
         res.status(200).send(summarizedContent.data);
 
@@ -21,7 +24,7 @@ export async function elaborateDocument(req, res) {
     try {
         const content = req.body['content'];
 
-        const elaboratedContent = await axios.post('http://localhost:8000/elaborate', {content: content});
+        const elaboratedContent = await axios.post(`${llmAPIEndpoint}elaborate`, {content: content});
 
         res.status(200).send(elaboratedContent.data);
         
@@ -47,7 +50,7 @@ export async function chat(req, res) {
             });
         }
 
-        const newMessages = await axios.post('http://127.0.0.1:8000/chat', formData, {
+        const newMessages = await axios.post(`${llmAPIEndpoint}chat`, formData, {
             headers: {
                 ...formData.getHeaders()
             },
@@ -71,7 +74,7 @@ export async function summarizeDocumentWithFactCheck(req, res) {
     try {
         const content = req.body['content'];
 
-        const summarizedContentWithFactCheck = await axios.post('http://localhost:8000/summarize-fact-check', {content: content});
+        const summarizedContentWithFactCheck = await axios.post(`${llmAPIEndpoint}summarize-fact-check`, {content: content});
 
         res.status(200).send(summarizedContentWithFactCheck.data);
     } catch (err) {
@@ -84,7 +87,7 @@ export async function questionAnswerWithRag(req, res) {
     try {
         const question = req.body['content'];
 
-        const answer = await axios.post('http://127.0.0.1:8000/question-answer-with-rag', {content: question});
+        const answer = await axios.post(`${llmAPIEndpoint}question-answer-with-rag`, {content: question});
 
         res.status(200).send(answer.data);
     } catch (err) {

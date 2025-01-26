@@ -26,7 +26,7 @@ HUGGING_FACE_API_TOKEN = "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"
 logger = logging.getLogger("uvicorn.error")
 
 device = "cuda"
-# torch.cuda.empty_cache()
+torch.cuda.empty_cache()
 
 class Message(BaseModel):
     role: str

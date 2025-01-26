@@ -535,9 +535,9 @@ def revise_response(response: str, claim_list: list[str], model: FastVisionModel
     return r
 
 
-llm_model, tokenizer = loadMultiModalLLM()
-passage_ranker = load_passage_ranker()
-question_duplicate_model, question_duplicate_tokenizer = load_question_duplicate_model()
+# llm_model, tokenizer = loadMultiModalLLM()
+# passage_ranker = load_passage_ranker()
+# question_duplicate_model, question_duplicate_tokenizer = load_question_duplicate_model()
 # summarized_text = "Machine learning (ML) is not an artificial intelligence (AI). ML is focused on developing algorithms and statistical models that enable computers to perform tasks without explicit programming. Instead of relying on pre-defined instructions, machine learning systems learn patterns and relationships from data to make predictions or decisions. At its core, ML can be categorized into three main types: supervised learning, unsupervised learning, and reinforcement learning. In supervised learning, algorithms are trained on labeled datasets, where the input-output pairs are explicitly provided, making it suitable for tasks like classification and regression. Unsupervised learning, on the other hand, deals with unlabeled data, using techniques such as clustering and dimensionality reduction to discover hidden patterns. Reinforcement learning involves an agent interacting with an environment, learning optimal strategies through rewards and penalties. Common algorithms include decision trees, support vector machines, neural networks, and k-means clustering. Machine learning has found applications in diverse fields, including natural language processing, computer vision, recommendation systems, and autonomous vehicles. However, ML models are not without challenges; issues such as data bias, overfitting, and interpretability remain significant concerns in the field. As technology advances, machine learning continues to play a critical role in driving innovation and solving complex problems across industries."
 
 # result = fact_checking_pipeline(summarized_text, llm_model, tokenizer, question_duplicate_model, question_duplicate_tokenizer, passage_ranker)
@@ -555,69 +555,69 @@ def load_json_lines(filename):
             data.append(json.loads(line.strip()))
     return data
 
-def evaluate_fact_checking_pipeline():
+# def evaluate_fact_checking_pipeline():
 
-    check_claims_json = load_json_lines("fact_checking_evaluation_data/claims.jsonl")
+#     check_claims_json = load_json_lines("fact_checking_evaluation_data/claims.jsonl")
 
-    factual_labels = []
+#     factual_labels = []
 
-    for claim in check_claims_json:
-        claim_text = claim["claim"]
-        # print(claim_text)
-        evidences = get_evidences_for_claim_rag(llm_model = llm_model, tokenizer = tokenizer, claim = claim_text, question_duplicate_model = question_duplicate_model, question_duplicate_tokenizer = question_duplicate_tokenizer, passage_ranker = passage_ranker)
-        evids = [evid["text"] for evid in evidences["aggregated"]]
-        # print(evids)
-        result = verify_claim(claim_text, evids, model = llm_model, tokenizer = tokenizer)
-        # print(result)
-        factual_labels.append(result["factuality"])
-        # return factual_labels
+#     for claim in check_claims_json:
+#         claim_text = claim["claim"]
+#         # print(claim_text)
+#         evidences = get_evidences_for_claim_rag(llm_model = llm_model, tokenizer = tokenizer, claim = claim_text, question_duplicate_model = question_duplicate_model, question_duplicate_tokenizer = question_duplicate_tokenizer, passage_ranker = passage_ranker)
+#         evids = [evid["text"] for evid in evidences["aggregated"]]
+#         # print(evids)
+#         result = verify_claim(claim_text, evids, model = llm_model, tokenizer = tokenizer)
+#         # print(result)
+#         factual_labels.append(result["factuality"])
+#         # return factual_labels
     
-    updated_data = [
-        {**item, 'claim_label': bool_value}
-        for item, bool_value in zip(check_claims_json, factual_labels)
-    ]
+#     updated_data = [
+#         {**item, 'claim_label': bool_value}
+#         for item, bool_value in zip(check_claims_json, factual_labels)
+#     ]
 
-    with open("fact_checking_evaluation_data/claims_with_labels.jsonl", 'w') as file:
-        for item in updated_data:
-            file.write(json.dumps(item) + "\n")
+#     with open("fact_checking_evaluation_data/claims_with_labels.jsonl", 'w') as file:
+#         for item in updated_data:
+#             file.write(json.dumps(item) + "\n")
 
-    return
+#     return
 
-def evaluate_normal():
+# def evaluate_normal():
 
-    check_claims_json = load_json_lines("fact_checking_evaluation_data/claims.jsonl")
+#     check_claims_json = load_json_lines("fact_checking_evaluation_data/claims.jsonl")
 
-    factual_labels = []
+#     factual_labels = []
 
-    for claim in check_claims_json:
-        claim_text = claim["claim"]
-        result = verify_claim(claim_text, [], llm_model, tokenizer)
-        factual_labels.append(result["factuality"])
+#     for claim in check_claims_json:
+#         claim_text = claim["claim"]
+#         result = verify_claim(claim_text, [], llm_model, tokenizer)
+#         factual_labels.append(result["factuality"])
     
-    updated_data = [
-        {**item, 'claim_label': bool_value}
-        for item, bool_value in zip(check_claims_json, factual_labels)
-    ]
+#     updated_data = [
+#         {**item, 'claim_label': bool_value}
+#         for item, bool_value in zip(check_claims_json, factual_labels)
+#     ]
 
-    with open("fact_checking_evaluation_data/claims_with_labels_without_rag.jsonl", 'w') as file:
-        for item in updated_data:
-            file.write(json.dumps(item) + "\n")
+#     with open("fact_checking_evaluation_data/claims_with_labels_without_rag.jsonl", 'w') as file:
+#         for item in updated_data:
+#             file.write(json.dumps(item) + "\n")
 
-    return
+#     return
 
 
-check_claims_json = load_json_lines("fact_checking_evaluation_data/claims_with_labels.jsonl")
+# check_claims_json = load_json_lines("fact_checking_evaluation_data/claims_with_labels.jsonl")
 
-factual_labels = []
-for claim in check_claims_json:
-    claim_label = claim["claim_label"]
-    factual_labels.append(not claim_label)
+# factual_labels = []
+# for claim in check_claims_json:
+#     claim_label = claim["claim_label"]
+#     factual_labels.append(not claim_label)
 
-updated_data = [
-        {**item, 'claim_label': bool_value}
-        for item, bool_value in zip(check_claims_json, factual_labels)
-    ]
+# updated_data = [
+#         {**item, 'claim_label': bool_value}
+#         for item, bool_value in zip(check_claims_json, factual_labels)
+#     ]
 
-with open("fact_checking_evaluation_data/claims_with_labels_inverted.jsonl", 'w') as file:
-    for item in updated_data:
-        file.write(json.dumps(item) + "\n")
+# with open("fact_checking_evaluation_data/claims_with_labels_inverted.jsonl", 'w') as file:
+#     for item in updated_data:
+#         file.write(json.dumps(item) + "\n")
