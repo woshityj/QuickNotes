@@ -71,7 +71,7 @@ export default function SignUp() {
     
 
     return (
-        <div className="flex flex-col h-screen">
+        <div className="flex flex-col h-screen bg-white">
             <NavBar />
             <div className="flex flex-col flex-grow flex-1 mx-auto my-auto w-[23.125rem] justify-center">
                 <div className="mb-[1.438rem]">
@@ -93,28 +93,28 @@ export default function SignUp() {
                     </button>
                 </div>
 
-                <hr></hr>
+                <hr className="border-[#e3e2e080]"></hr>
 
                 <div className="mt-5">
                     <form>
                         <div className="mb-4">
                             <label className="text-[#787774] text-[0.75rem] leading-[1.125rem] font-inter">Name</label>
-                            <input name="name" onChange={handleInput} value={signUpData.name} type="text" className="w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your name..."></input>
+                            <input name="name" onChange={handleInput} value={signUpData.name} type="text" className="text-black bg-white w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your name..."></input>
                         </div>
 
                         <div className="mb-4">
                             <label className="text-[#787774] text-[0.75rem] leading-[1.125rem] font-inter">Email</label>
-                            <input name="email" onChange={handleInput} value={signUpData.email} type="text" className="w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your name..."></input>
+                            <input name="email" onChange={handleInput} value={signUpData.email} type="text" className="text-black bg-white w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your name..."></input>
                         </div>
 
                         <div className="mb-4">
                             <label className="text-[#787774] text-[0.75rem] leading-[1.125rem] font-inter">Password</label>
-                            <input name="password" onChange={handleInput} value={signUpData.password} type="password" className="w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your password..."></input>
+                            <input name="password" onChange={handleInput} value={signUpData.password} type="password" className="text-black bg-white w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your password..."></input>
                         </div>
 
                         <div className="mb-4">
                             <label className="text-[#787774] text-[0.75rem] leading-[1.125rem] font-inter">Confirm Password</label>
-                            <input name="confirmPassword" onChange={handleInput} value={signUpData.confirmPassword} type="password" className="w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Confirm your password..."></input>
+                            <input name="confirmPassword" onChange={handleInput} value={signUpData.confirmPassword} type="password" className="text-black bg-white w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Confirm your password..."></input>
                         </div>
 
                         <button onClick={handleSignUp} className="w-full font-inter text-[0.875rem] min-h-9 leading-[0.875rem] text-white font-medium bg-[#0582FF] py-[0.406rem] px-[0.75rem] rounded-md">

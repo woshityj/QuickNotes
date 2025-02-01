@@ -9,7 +9,7 @@ export default function Footer()
             <div className="flex justify-between">
 
                 <div className="">
-                    <h5 className=" mb-9 font-inter font-bold text-2xl leading-[1.5rem]">QuickNotes</h5>
+                    <h5 className=" mb-9 font-inter font-bold text-2xl leading-[1.5rem] text-black">QuickNotes</h5>
 
                     <div className="flex flex-row mb-[2.188rem]">
                         <div className="p-1.5">

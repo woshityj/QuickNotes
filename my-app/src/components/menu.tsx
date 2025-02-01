@@ -63,7 +63,7 @@ export default function Menu({documentId}: MenuProps) {
                     <MoreHorizontal className="h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-60" align="end" alignOffset={8} forceMount>
+            <DropdownMenuContent className="w-60 dark:bg-[#1F1F1F]" align="end" alignOffset={8} forceMount>
                 <DropdownMenuItem onClick={onArchive}>
                     <Trash className="h-4 w-4 mr-2" />
                     Delete

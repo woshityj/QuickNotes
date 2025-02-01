@@ -10,6 +10,7 @@ import ModalProvider from "@/components/providers/modal-provider";
 import { EdgeStoreProvider } from "@/lib/edgestore";
 import "./globals.css";
 import Script from 'next/script';
+import { ThemeProvider } from '@/components/theme-provider';
 
 const geistSans = localFont({
 	src: "./fonts/GeistVF.woff",
@@ -55,6 +56,11 @@ export default function RootLayout({
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
 				<CookiesProvider>
+				<ThemeProvider
+					attribute='class'
+					defaultTheme='dark'
+					enableSystem
+				>
 				<ReactQueryClientProvider>
 					<EdgeStoreProvider>
 					<Toaster position="bottom-center" />
@@ -62,6 +68,7 @@ export default function RootLayout({
 						{children}
 					</EdgeStoreProvider>
 				</ReactQueryClientProvider>
+				</ThemeProvider>
 				</CookiesProvider>
 
 			</body>

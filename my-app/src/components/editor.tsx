@@ -17,6 +17,8 @@ import 'regenerator-runtime/runtime';
 import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
 import { toast } from "sonner";
 
+import "../../public/static/css/editor.css"
+
 interface EditorProps {
     onChange: (value: string) => void;
     initialContent?: string;
@@ -252,6 +254,7 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
                 theme={resolvedTheme === "dark" ? "dark" : "light"}
                 onChange={() => onChange(JSON.stringify(editor.topLevelBlocks, null, 2))}
                 slashMenu={false}
+                data-theming-css-variables-demo
             >
                 <SuggestionMenuController 
                     triggerCharacter={"/"}

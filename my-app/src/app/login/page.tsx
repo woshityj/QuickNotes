@@ -73,7 +73,7 @@ export default function Login() {
     }
 
     return (
-        <div className="flex flex-col h-screen">
+        <div className="flex flex-col h-screen dark:bg-white">
             <NavBar />
             <div className="flex flex-col flex-grow flex-1 mx-auto my-auto w-[23.125rem] justify-center">
                 <div className="mb-[1.438rem]">
@@ -95,18 +95,18 @@ export default function Login() {
                     </button>
                 </div>
 
-                <hr></hr>
+                <hr className="border-[#e3e2e080]"></hr>
 
                 <div className="mt-5">
                     <form>
                         <div className="mb-4">
                             <label className="text-[#787774] text-[0.75rem] leading-[1.125rem] font-inter">Email</label>
-                            <input name="email" value={loginData.email} onChange={handleInput} type="text" className="w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your email address..."></input>
+                            <input name="email" value={loginData.email} onChange={handleInput} type="text" className="bg-white text-black w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB] dark:autofill:bg-white" placeholder="Enter your email address..."></input>
                         </div>
 
                         <div className="mb-4">
                             <label className="text-[#787774] text-[0.75rem] leading-[1.125rem] font-inter">Password</label>
-                            <input name="password" value={loginData.password} onChange={handleInput} type="password" className="w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your password..."></input>
+                            <input name="password" value={loginData.password} onChange={handleInput} type="password" className="bg-white text-black w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your password..."></input>
                         </div>
 
                         <button onClick={handleLogin} className="w-full font-inter text-[0.875rem] min-h-9 leading-[0.875rem] text-white font-medium bg-[#0582FF] py-[0.406rem] px-[0.75rem] rounded-md">

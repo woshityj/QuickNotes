@@ -235,7 +235,7 @@ export default function ChatSupport() {
 													return (
 														<ChatBubbleAction
 															variant="outline"
-															className="size-5"
+															className="size-5 dark:bg-[#262626]"
 															key={iconIndex}
 															icon={<Icon className="size-3" />}
 															onClick={() => handleActionClick(icon.label, index)}

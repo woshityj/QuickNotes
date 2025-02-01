@@ -1,8 +1,6 @@
 "use client";
 
 import { createDocument } from "@/app/services/documentServices";
-import { isTokenExpired, refreshToken } from "@/app/utils/authentication";
-import { backendURL } from "@/app/utils/constants";
 import PrimaryButton from "@/components/primary_button";
 import { PlusCircle } from "lucide-react";
 import Image from "next/image";
@@ -11,6 +9,7 @@ import { FormEvent, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useCookies } from "next-client-cookies";
+import { Button } from "@/components/ui/button";
 
 export default function DocumentPage() {
 
@@ -71,13 +70,23 @@ export default function DocumentPage() {
 				width={300}
 				height={300}
 				alt="Empty"
+				className="dark:hidden"
 			></Image>
+			<Image
+				src="/static/images/empty-dark.png"
+				width={300}
+				height={300}
+				alt="Empty"
+				className="hidden dark:block"
+			>
+			</Image>
 			<h2 className="font-inter text-lg font-medium">
 				Welcome to YuJie&apos;s QuickNotes
 			</h2>
-			<PrimaryButton value={"Create a note"} onClickFunction={handleCreateNewDocument}>
+			<Button onClick={handleCreateNewDocument} className="font-inter font-semibold text-base leading-[1.438rem]">
 				<PlusCircle className="h-4 w-4 mr-2" />
-			</PrimaryButton>
+				Create a note
+			</Button>
 		</div>
 	);
 }

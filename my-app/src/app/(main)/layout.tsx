@@ -91,7 +91,7 @@ export default function MainLayout({ children } : { children: React.ReactNode; }
     }, [authorizationToken]);
 
     return (
-        <div className="h-screen flex">
+        <div className="h-screen flex dark:bg-[#191919]">
             <SideBar currentUser={currentUser} />
 
             <main className="flex-1 h-full overflow-y-auto">

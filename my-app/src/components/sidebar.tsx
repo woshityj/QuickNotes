@@ -141,7 +141,7 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
             <aside
                 ref={sidebarRef}
                 className={cn(
-                    "group/sidebar h-full bg-[#F7F7F5] overflow-y-auto relative flex w-60 flex-col z-[999]",
+                    "group/sidebar h-full bg-[#F7F7F5] dark:bg-[#1F1F1F] overflow-y-auto relative flex w-60 flex-col z-[999]",
                     isResetting && "transition-all ease-in-out duration-300",
                     isMobile && "w-0"
                 )}

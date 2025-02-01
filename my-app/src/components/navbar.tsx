@@ -57,6 +57,13 @@ export default function NavBar()
                                 <div className="hover:bg-[#0000000a] mr-3.5 px-2.5 rounded-md">
                                     <a href="#" className="text-primary-black font-inter font-medium text-[0.938rem] leading-[1.938rem]">Pricing</a>
                                 </div>
+                                {
+                                    isLoggedIn
+                                    &&
+                                    <div className="hover:bg-[#0000000a] mr-3.5 px-2.5 rounded-md">
+                                        <Link href="/documents" className="text-primary-black font-inter font-medium text-[0.938rem] leading-[1.938rem]">Notes</Link>
+                                    </div>
+                                }
                             </div>
                         </div>
                         <div className="flex">

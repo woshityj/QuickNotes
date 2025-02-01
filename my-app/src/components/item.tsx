@@ -136,7 +136,7 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
-                            className="w-60 bg-white z-[99999]"
+                            className="w-60 dark:bg-[#1F1F1F] z-[99999]"
                             align="start"
                             side="right"
                             forceMount
