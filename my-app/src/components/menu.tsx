@@ -13,9 +13,10 @@ import { useCookies } from "next-client-cookies";
 
 interface MenuProps {
     documentId: string
+    lastEditedBy: string
 }
 
-export default function Menu({documentId}: MenuProps) {
+export default function Menu({documentId, lastEditedBy}: MenuProps) {
     const router = useRouter();
     const queryClient = useQueryClient();
     const cookies = useCookies();
@@ -74,7 +75,7 @@ export default function Menu({documentId}: MenuProps) {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <div className="text-xs text-muted-foreground p-2">
-                    Last editted by: user
+                    Last editted by: {lastEditedBy}
                 </div>
             </DropdownMenuContent>
         </DropdownMenu>

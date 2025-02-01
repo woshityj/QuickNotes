@@ -35,6 +35,11 @@ const DocumentSchema = new Schema({
     isPublished: {
         type: Boolean,
         default: false
+    },
+    lastEditedBy: {
+        type: Schema.Types.ObjectId,
+        ref: "users",
+        required: true,
     }
 });
 

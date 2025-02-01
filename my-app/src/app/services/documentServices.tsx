@@ -13,6 +13,9 @@ export type Document = {
     coverImage: string,
     icon: string,
     isPublished: boolean
+    lastEditedBy: {
+        name: string
+    }
 };
 
 export async function createDocument({parentDocumentId, authorizationToken}: {parentDocumentId?: string, authorizationToken?: string}) {

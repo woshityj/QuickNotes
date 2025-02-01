@@ -58,6 +58,8 @@ export default function TrashBox () {
         event.stopPropagation();
 
         restoreDocumentMutate.mutate({ id: documentId, authorizationToken: cookies.get("AuthorizationToken") });
+        queryClient.invalidateQueries({ queryKey: ["documents"] });
+        queryClient.invalidateQueries({ queryKey: ["document", "detail", documentId] });
     }
 
     const onRemove = (
@@ -65,6 +67,7 @@ export default function TrashBox () {
     ) => {
 
         removeDocumentMutate.mutate({ id: documentId, authorizationToken: cookies.get("AuthorizationToken") });
+        queryClient.invalidateQueries({ queryKey: ["documents"] });
 
         // If user is currently viewing the deleted document, redirect
         // the user back to the documents page.

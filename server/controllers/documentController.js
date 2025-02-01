@@ -10,7 +10,7 @@ export async function createDocument(req, res) {
 
         const userId = await getUserId(req.headers['authorization']);
 
-        let document = new DocumentItem({ userId: userId, parentDocument: parentDocument });
+        let document = new DocumentItem({ userId: userId, parentDocument: parentDocument, lastEditedBy: userId });
         
         await document.save();
 
@@ -26,7 +26,7 @@ export async function getDocuments(req, res) {
     try {
         let parentDocumentId = req.params.parentDocumentId;
 
-        const userId = await getUserId(req.headers['authorization']);
+        const userId = (await getUserId(req.headers['authorization']));
 
         let conditions = [];
         if (!!parentDocumentId) {
@@ -41,6 +41,7 @@ export async function getDocuments(req, res) {
 
         let documents = await DocumentItem
             .find(finalCondition)
+            .populate("lastEditedBy", "name")
             .exec();
 
         res.status(200).send(documents);
@@ -54,7 +55,7 @@ export async function getDocument(req, res) {
     try {
         const id = req.params.id;
 
-        let document = await DocumentItem.findOne({ _id: id });
+        let document = await DocumentItem.findOne({ _id: id }).populate("lastEditedBy", "name");
 
         if (document.isPublished && !document.isArchived) {
             return res.status(200).send(document);
@@ -94,7 +95,7 @@ export async function updateDocument(req, res) {
                 return res.status(401).send("Unauthorized");
             }
 
-            const existingDocument = await DocumentItem.findOne({ _id: id, userId: userId });
+            const existingDocument = await DocumentItem.findOne({ _id: id, userId: userId }).populate("lastEditedBy", "name");
 
             if (!existingDocument) {
                 throw new Error("Not found");
@@ -104,7 +105,7 @@ export async function updateDocument(req, res) {
             return res.status(401).send("Unauthorized");
         }
         
-        const document = await DocumentItem.findOneAndUpdate({ _id: id }, {$set: { title: title, content: content, coverImage: coverImage, icon: icon, isPublished: isPublished }});
+        const document = await DocumentItem.findOneAndUpdate({ _id: id }, {$set: { title: title, content: content, coverImage: coverImage, icon: icon, isPublished: isPublished, lastEditedBy: userId }}).populate("lastEditedBy", "name");
 
         res.status(200).send(document);
         
@@ -121,7 +122,7 @@ export async function archiveDocument(req, res) {
         const userId = await getUserId(req.headers['authorization']);
 
         const recursiveArchive = async (documentId) => {
-            await DocumentItem.updateMany({ userId: userId, parentDocument: documentId }, {$set: { isArchived: true }});
+            await DocumentItem.updateMany({ userId: userId, parentDocument: documentId }, {$set: { isArchived: true, lastEditedBy: userId }});
 
             const children = await DocumentItem.find({ userId: userId, parentDocument: documentId });
 
@@ -130,7 +131,7 @@ export async function archiveDocument(req, res) {
             }
         }
 
-        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$set: { isArchived: true }});
+        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$set: { isArchived: true, lastEditedBy: userId }}).populate("lastEditedBy", "name");
 
         recursiveArchive(document._id);
         
@@ -158,7 +159,7 @@ export async function getArchivedDocuments(req, res) {
         let finalCondition = conditions.length ? { $and: conditions } : {};
 
         // let documents = await DocumentItem.find({ userId: userId, isArchived: true });
-        let documents = await DocumentItem.find(finalCondition);
+        let documents = await DocumentItem.find(finalCondition).populate("lastEditedBy", "name");
 
         res.status(200).send(documents);
     } catch (err) {
@@ -179,7 +180,7 @@ export async function restoreDocument(req, res) {
             const children = await DocumentItem.find({ parentDocument: documentId, userId: userId });
 
             for (const child of children) {
-                await DocumentItem.updateOne({ _id: child._id }, {$set: { isArchived: false }});
+                await DocumentItem.updateOne({ _id: child._id }, {$set: { isArchived: false, lastEditedBy: userId }});
 
                 await recursiveRestore(child._id);
             }
@@ -189,11 +190,11 @@ export async function restoreDocument(req, res) {
             let parent = await DocumentItem.findOne({ _id: document.parentDocument });
 
             if (parent?.isArchived || parent == null) {
-                await DocumentItem.updateOne({ _id: id }, {$unset: { parentDocument: "" } });
+                await DocumentItem.updateOne({ _id: id }, {$unset: { parentDocument: "", lastEditedBy: userId } });
             }
         }
 
-        let updatedDocument = await DocumentItem.findOneAndUpdate({ _id: id }, {$set: {isArchived: false}});
+        let updatedDocument = await DocumentItem.findOneAndUpdate({ _id: id }, {$set: {isArchived: false, lastEditedBy: userId}}).populate("lastEditedBy", "name");
 
         recursiveRestore(id);
         
@@ -225,7 +226,7 @@ export async function getUserDocuments(req, res) {
     const userId = req.body['userId'];
 
     try {
-        let userDocuments = await DocumentItem.find({ userId: userId }).exec();
+        let userDocuments = await DocumentItem.find({ userId: userId }).populate("lastEditedBy", "name").exec();
 
         res.status(200).send(userDocuments);
     } catch (err) {
@@ -253,7 +254,7 @@ export async function removeDocumentIcon(req, res) {
 
         const userId = await getUserId(req.headers['authorization']);
 
-        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$unset: {icon: ""}});
+        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$unset: {icon: "", lastEditedBy: userId}}).populate("lastEditedBy", "name");
         
         res.status(200).send(document);
     } catch (err) {
@@ -268,7 +269,7 @@ export async function removeDocumentCoverImage(req, res) {
 
         const userId = await getUserId(req.headers['authorization']);
 
-        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$unset: {coverImage: ""}});
+        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$unset: {coverImage: "", lastEditedBy: userId}}).populate("lastEditedBy", "name");
 
         res.status(200).send(document);
     } catch (err) {
@@ -286,7 +287,7 @@ export async function createDocumentFromTemplate(req, res) {
 
             let template = await getTemplate(templateId);
     
-            let document = new DocumentItem({ title: template.title, userId: userId, content: template.content, });
+            let document = new DocumentItem({ title: template.title, userId: userId, content: template.content, lastEditedBy: userId }).populate("lastEditedBy", "name");
 
             await document.save();
 

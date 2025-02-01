@@ -21,9 +21,10 @@ interface ItemProps {
     label: string;
     onClick?: () => void;
     icon: LucideIcon;
+    lastEditedBy?: string;
 };
 
-export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSearch, level = 0, onExpand, expanded} : ItemProps) => {
+export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSearch, level = 0, onExpand, expanded, lastEditedBy} : ItemProps) => {
 
     const queryClient = useQueryClient();
 
@@ -147,7 +148,7 @@ export const Item = ({id, label, onClick, icon: Icon, active, documentIcon, isSe
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <div className="text-xs text-muted-foreground p-2">
-                                Last edited by: 
+                                Last edited by: {lastEditedBy}
                             </div>
                         </DropdownMenuContent>
                     </DropdownMenu>

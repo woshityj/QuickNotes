@@ -66,7 +66,7 @@ export default function UserItem({ currentUser } : { currentUser: User }) {
                         {currentUser.email}
                     </p>
                     <div className="flex items-center gap-x-2">
-                        <div className="rounded-md bg-secondary p-1">
+                        <div className="rounded-md p-1">
                             <Avatar className="h-8 w-8">
                                 <AvatarImage src="/static/images/avatar.jpg" />
                             </Avatar>

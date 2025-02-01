@@ -55,7 +55,7 @@ export default function SecondaryNavbar({isCollapsed, onResetWidth}: NavbarProps
                     <Title initialData={getDocumentMutate.data} />
                     <div className="flex items-center gap-x-2">
                         <Publish initialData={getDocumentMutate.data} />
-                        <Menu documentId={getDocumentMutate.data._id} />
+                        <Menu documentId={getDocumentMutate.data._id} lastEditedBy={getDocumentMutate.data.lastEditedBy.name} />
                     </div>
                 </div>
             </nav>

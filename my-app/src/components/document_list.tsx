@@ -77,6 +77,7 @@ export const DocumentList = ({ parentDocumentId, level = 0}: DocumentListProps) 
                         level={level}
                         onExpand={() => onExpand(document._id)}
                         expanded={expanded[document._id]}
+                        lastEditedBy={document.lastEditedBy.name}
                     />
                     {expanded[document._id] && (
                         <DocumentList
