@@ -10,6 +10,8 @@ import { backendURL } from "../utils/constants";
 import { cookies } from "next/headers";
 import { login } from "../services/userServices";
 
+import "../../../public/static/css/login.css";
+
 export default function Login() {
 
     const router = useRouter();
@@ -101,7 +103,7 @@ export default function Login() {
                     <form>
                         <div className="mb-4">
                             <label className="text-[#787774] text-[0.75rem] leading-[1.125rem] font-inter">Email</label>
-                            <input name="email" value={loginData.email} onChange={handleInput} type="text" className="bg-white text-black w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB] dark:autofill:bg-white" placeholder="Enter your email address..."></input>
+                            <input name="email" value={loginData.email} onChange={handleInput} type="text" className="bg-white text-black w-full font-inter rounded-md py-1 pl-[0.625rem] leading-[1.625rem] text-[0.938rem] border-[#D3D1CB] border-[0.063rem] placeholder:text-[#D3D1CB]" placeholder="Enter your email address..."></input>
                         </div>
 
                         <div className="mb-4">
