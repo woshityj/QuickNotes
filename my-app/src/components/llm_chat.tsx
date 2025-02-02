@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/chat/expandable-chat";
 import { ChatMessageList } from "@/components/ui/chat/chat-message-list";
 import { Button } from "./ui/button";
-import { CopyIcon, CornerDownLeft, Globe, Mic, Paperclip, RefreshCcw, Send, Volume2, X } from "lucide-react";
+import { CopyIcon, CornerDownLeft, Globe, Mic, NotebookPen, Paperclip, RefreshCcw, Send, Volume2, X } from "lucide-react";
 import { useChat } from "ai/react";
 import { useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
@@ -25,7 +25,8 @@ import { backendURL } from "@/app/utils/constants";
 import { toast } from "sonner";
 import { Checkbox } from "./ui/checkbox";
 import { Toggle } from "./ui/toggle";
-import { questionAnswerWithRag } from "@/app/services/llmServices";
+import { questionAnswerWithNotes, questionAnswerWithRag } from "@/app/services/llmServices";
+import { useCookies } from "next-client-cookies";
 
 
 const ChatAiIcons = [
@@ -60,15 +61,13 @@ export default function ChatSupport() {
 	const [isGenerating, setIsGenerating] = useState(false);
 	
 	const [ragEnabled, setRagEnabled] = useState(false);
+	const [notesRAGEnabled, setNotesRAGEnabled] = useState(false);
 
 	const imageInputRef = useRef<HTMLInputElement>(null);
 	const messagesRef = useRef<HTMLDivElement>(null);
 	const formRef = useRef<HTMLFormElement>(null);
 
-	useEffect(() => {
-		const authorizationTokenValue = localStorage.getItem("AuthorizationToken");
-		setAuthorizationToken(authorizationTokenValue);
-	}, []);
+	const cookies = useCookies();
 
 	const resetChatBotState = () => {
 		setSelectedImage(null);
@@ -92,10 +91,17 @@ export default function ChatSupport() {
 		try {
 
 			// If RAG is enabled, only send the message to the RAG model
-			if (ragEnabled) {
+			if (ragEnabled && !notesRAGEnabled) {
 				const questionAnswerWithRagResult = await questionAnswerWithRag({ content: userMessage });
 
 				const answer = questionAnswerWithRagResult.data;
+
+				setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: answer } ]);
+			}
+			else if (notesRAGEnabled && !ragEnabled) {
+				const questionAnswerWithNotesResult = await questionAnswerWithNotes({ content: userMessage, authorizationToken: cookies.get("AuthorizationToken") });
+
+				const answer = questionAnswerWithNotesResult.data;
 
 				setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: answer } ]);
 			}
@@ -302,6 +308,10 @@ export default function ChatSupport() {
 
 							<Toggle aria-label="Toggle RAG" pressed = {ragEnabled} onPressedChange={() => setRagEnabled(!ragEnabled)}>
 								<Globe className="h-4 w-4" />
+							</Toggle>
+
+							<Toggle aria-label="Toggle Notes RAG" pressed = {notesRAGEnabled} onPressedChange={() => setNotesRAGEnabled(!notesRAGEnabled)}>
+								<NotebookPen className="h-4 w-4" />
 							</Toggle>
 
 							<Button

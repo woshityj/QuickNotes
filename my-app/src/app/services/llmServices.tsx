@@ -87,3 +87,25 @@ export async function questionAnswerWithRag({content}: {content: string}) {
         console.log(err);
     }
 }
+
+export async function questionAnswerWithNotes({content, authorizationToken}: {content: string, authorizationToken?: string}) {
+    try {
+        const response = await fetch(`${backendURL}/llm/question-answer-with-notes`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "Authorization": authorizationToken || "",
+            },
+            body: JSON.stringify({ question: content }),
+            credentials: 'include',
+        });
+
+        if (response.ok) {
+            return response.json();
+        }
+
+    } catch (err) {
+        console.log(err);
+    }
+}

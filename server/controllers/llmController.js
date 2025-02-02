@@ -2,9 +2,11 @@ import axios from "axios";
 import fs from "fs";
 import path from "path";
 import FormData from "form-data";
+import { getUserId } from "./userController.js";
+import DocumentItem from "../models/document.model.js";
 
-const llmAPIEndpoint = process.env.llmAPIEndpoint || "http://localhost:8000/";
-// const llmAPIEndpoint = "http://localhost:8000/";
+// const llmAPIEndpoint = process.env.llmAPIEndpoint || "http://localhost:8000/";
+const llmAPIEndpoint = "http://localhost:8000/";
 
 export async function summarizeDocument(req, res) {
     try {
@@ -94,4 +96,62 @@ export async function questionAnswerWithRag(req, res) {
         console.log(err);
         res.status(500).send('Server Error');
     }
+}
+
+export async function questionAnswerWithNotes(req, res) {
+
+    if (!req.headers['authorization']) {
+        return res.status(401).send("Unauthorized User");
+    }
+
+    const userId = await getUserId(req.headers['authorization']);
+
+    let documents = await DocumentItem.find({ userId: userId, isArchived: false });
+    documents = JSON.parse(JSON.stringify(documents));
+
+    let documentsContent = documents.map(document => extractTextContent(document));
+    
+    try {
+
+        const question = req.body['question'];
+
+        const answer = await axios.post(`${llmAPIEndpoint}question-answer-with-notes`, {question: question, notes: documentsContent});
+        
+        return res.status(200).send(answer.data);
+    } catch (err) {
+        console.log(err);
+        return res.status(500).send('Server Error');
+    }
+}
+
+function extractTextContent(nodes) {
+
+    if (!nodes.content) {
+        return "";
+    }
+    nodes = JSON.parse(nodes.content);
+
+    let texts = [];
+    
+    console.log(nodes);
+
+    nodes.forEach(node => {
+        if (node.content) {
+            console.log(node.content);
+            console.log("\n");
+            if (Array.isArray(node.content)) {
+                node.content.forEach(contentItem => {
+                    if (contentItem.type === "text" && contentItem.text) {
+                        texts.push(contentItem.text);
+                    }
+                });
+            }
+        }
+
+        if (Array.isArray(node.children) && node.children.length > 0) {
+            texts.push(extractTextContent(node.children));
+        }
+    });
+
+    return texts.join("\n");
 }

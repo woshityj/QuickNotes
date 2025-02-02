@@ -2,7 +2,7 @@
 # from llm_model import load_peft_model, load_multi_modal_llm, text_summarization, text_summarization_with_rag_validation, custom_chat, text_with_image, custom_chat_multi_modal_llm
 from llm_multi_model import loadMultiModalLLM, textSummarizationMultiModal, customChatWithMultiModelLLM, imagesWithMultiModelLLM, customChatVideoTranscriptWithMultiModelLLM, textElaborationMultiModel, question_and_answer_with_rag
 from document_processing import convertBase64PDFToImages, convertVideoToText
-from fact_checking_pipeline import fact_checking_pipeline, load_question_duplicate_model, load_passage_ranker
+from fact_checking_pipeline import fact_checking_pipeline, load_question_duplicate_model, load_passage_ranker, question_and_answer_with_notes
 
 from fastapi import FastAPI, UploadFile, File, Form, Depends
 from fastapi.encoders import jsonable_encoder
@@ -20,6 +20,10 @@ from PIL import Image
 from typing import Annotated, IO, Optional
 import filetype
 import os
+
+class QuestionWithNotes(BaseModel):
+    question: str
+    notes: list[str]
 
 class Content(BaseModel):
     content: str
@@ -225,5 +229,16 @@ async def question_answer_with_rag(content: Content):
     except Exception as e:
         return HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
 
+@app.post("/question-answer-with-notes")
+async def question_answer_with_notes(content: QuestionWithNotes):
+    try:
+        
+        response = await question_and_answer_with_notes(llm_model, tokenizer, content.question, content.notes, question_duplicate_tokenizer = question_duplicate_tokenizer, passage_ranker = passage_ranker)
+
+        return {"data": response}
+    except Exception as e:
+        return {"error": str(e)}
+
+
 if __name__ == '__main__':
-    uvicorn.run(app, host = "0.0.0.0", port = 8000, reload = False, log_level = "info")
+    uvicorn.run(app, host = "localhost", port = 8000, reload = False, log_level = "info")

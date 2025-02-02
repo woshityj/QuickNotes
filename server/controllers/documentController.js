@@ -2,7 +2,11 @@ import DocumentItem from "../models/document.model.js";
 import { getTemplate } from "./templateController.js";
 import { getUserId } from "./userController.js";
 
+import axios from "axios";
 import mongoose from "mongoose";
+
+// const llmAPIEndpoint = process.env.LLM_API_ENDPOINT || "http://localhost:8000/";
+const llmAPIEndpoint = "http://localhost:8000/";
 
 export async function createDocument(req, res) {
     try {
@@ -88,26 +92,46 @@ export async function updateDocument(req, res) {
         const icon = req.body['icon'];
         const isPublished = req.body['isPublished'];
 
-        if (req.headers['authorization']) {
-            const userId = await getUserId(req.headers['authorization']);
+        if (!req.headers['authorization']) {
+            return res.status(401).send("Unauthorized User");
+        }
 
-            if (!userId) {
-                return res.status(401).send("Unauthorized");
-            }
+        const userId = await getUserId(req.headers['authorization']);
 
-            const existingDocument = await DocumentItem.findOne({ _id: id, userId: userId }).populate("lastEditedBy", "name");
-
-            if (!existingDocument) {
-                throw new Error("Not found");
-            }
-    
-        } else {
-            return res.status(401).send("Unauthorized");
+        if (!userId) {
+            return res.status(401).send("Unauthorized User");
         }
         
-        const document = await DocumentItem.findOneAndUpdate({ _id: id }, {$set: { title: title, content: content, coverImage: coverImage, icon: icon, isPublished: isPublished, lastEditedBy: userId }}).populate("lastEditedBy", "name");
+        // const existingDocument = await DocumentItem.findOne({ _id: id, userId: userId }).populate("lastEditedBy", "name");
 
-        res.status(200).send(document);
+        const document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$set: { title: title, content: content, coverImage: coverImage, icon: icon, isPublished: isPublished, lastEditedBy: userId }}).populate("lastEditedBy", "name");
+
+        if (!document) {
+            return res.status(404).send("Document Not Found");
+        }
+
+        return res.status(200).send(document);
+
+        // if (req.headers['authorization']) {
+        //     const userId = await getUserId(req.headers['authorization']);
+
+        //     if (!userId) {
+        //         return res.status(401).send("Unauthorized");
+        //     }
+
+        //     const existingDocument = await DocumentItem.findOne({ _id: id, userId: userId }).populate("lastEditedBy", "name");
+
+        //     if (!existingDocument) {
+        //         throw new Error("Not found");
+        //     }
+    
+        // } else {
+        //     return res.status(401).send("Unauthorized");
+        // }
+        
+        // const document = await DocumentItem.findOneAndUpdate({ _id: id }, {$set: { title: title, content: content, coverImage: coverImage, icon: icon, isPublished: isPublished, lastEditedBy: userId }}).populate("lastEditedBy", "name");
+
+        // res.status(200).send(document);
         
     } catch (err) {
         console.log(err);
@@ -301,3 +325,60 @@ export async function createDocumentFromTemplate(req, res) {
         res.status(500).send("Server Error");
     }
 }
+
+// export async function getDocumentsInMarkdown(req, res) {
+
+//     if (!req.headers['authorization']) {
+//         return res.status(401).send("Unauthorized User");
+//     }
+
+//     const userId = await getUserId(req.headers['authorization']);
+
+//     let documents = await DocumentItem.find({ userId: userId, isArchived: false });
+//     documents = JSON.parse(JSON.stringify(documents));
+
+//     let documentsContent = documents.map(document => extractTextContent(document));
+
+//     try {
+//         const question = req.body['question'];
+
+//         const answer = await axios.post(`${llmAPIEndpoint}question-answer-with-notes`, {question: question, notes: documentsContent});
+
+//         return res.status(200).send(answer.data);
+
+//     } catch (err) {
+//         return res.status(500).send("Server Error");
+//     }
+// }
+
+// function extractTextContent(nodes) {
+
+//     if (!nodes.content) {
+//         return "";
+//     }
+//     nodes = JSON.parse(nodes.content);
+
+//     let texts = [];
+    
+//     console.log(nodes);
+
+//     nodes.forEach(node => {
+//         if (node.content) {
+//             console.log(node.content);
+//             console.log("\n");
+//             if (Array.isArray(node.content)) {
+//                 node.content.forEach(contentItem => {
+//                     if (contentItem.type === "text" && contentItem.text) {
+//                         texts.push(contentItem.text);
+//                     }
+//                 });
+//             }
+//         }
+
+//         if (Array.isArray(node.children) && node.children.length > 0) {
+//             texts.push(extractTextContent(node.children));
+//         }
+//     });
+
+//     return texts.join("\n");
+// }

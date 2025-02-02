@@ -17,10 +17,13 @@ import json
 import nltk
 import spacy
 import torch
+import logging
 import itertools
 import requests
 
 embeddings_model = load_wikipedia_embeddings_model()
+
+logger = logging.getLogger("uvicorn.error")
 
 def load_question_duplicate_model():
 
@@ -534,6 +537,54 @@ def revise_response(response: str, claim_list: list[str], model: FastVisionModel
 
     return r
 
+def get_relevant_snippets_notes(query: str, notes: list[str], tokenizer, passage_ranker, timeout = 10, max_search_results_per_query = 5, max_passages_per_search_result_to_return = 2, sentences_per_passage = 5):
+
+    retrieved_passages = list()
+    for note in notes:
+        passages = chunk_text(text = note, tokenizer = tokenizer, sentences_per_passage = sentences_per_passage)
+        if not passages:
+            continue
+
+        scores = passage_ranker.predict([(query, p[0]) for p in passages]).tolist()
+        passage_scores = list(zip(passages, scores))
+
+        passage_scores.sort(key = lambda x: x[1], reverse = True)
+
+        relevant_items = list()
+        for passage_item, score in passage_scores:
+            overlap = False
+            if len(relevant_items) > 0:
+                for item in relevant_items:
+                    if passage_item[1] >= item[1] and passage_item[1] <= item[2]:
+                        overlap = True
+                        break
+                    if passage_item[2] >= item[1] and passage_item[2] <= item[2]:
+                        overlap = True
+                        break
+            
+            if not overlap:
+                relevant_items.append(deepcopy(passage_item))
+                retrieved_passages.append(
+                    {
+                        "text": passage_item[0],
+                        "sents_per_passage": sentences_per_passage,
+                        "retrieval_score": score, # Cross-encoder score as retr score
+                    }
+                )
+            
+            if len(relevant_items) >= max_passages_per_search_result_to_return:
+                break
+    
+    return retrieved_passages
+
+def get_evidences_from_notes(query: str, notes: str, question_duplicate_tokenizer, passage_ranker: CrossEncoder):
+
+    snippets = dict()
+    
+    snippets[query] = get_relevant_snippets_notes(query, notes, question_duplicate_tokenizer, passage_ranker)
+    snippets[query] = deepcopy(sorted(snippets[query], key = lambda snippet: snippet["retrieval_score"], reverse = True)[:5])
+
+
 
 # llm_model, tokenizer = loadMultiModalLLM()
 # passage_ranker = load_passage_ranker()
@@ -621,3 +672,37 @@ def load_json_lines(filename):
 # with open("fact_checking_evaluation_data/claims_with_labels_inverted.jsonl", 'w') as file:
 #     for item in updated_data:
 #         file.write(json.dumps(item) + "\n")
+
+
+# notes = [
+#     "This is a note\n/image\nHello World\nThis is another test\nThe BBC's new website is live.",
+#     "Hello World\n\nHello this is a test\nASCII\nThe standard ASCII code character set consists of 7-bit code that represents the letters, numbers and characters found on a standard keyboard, together with 32 control codes\nUppercase and lowercase characters have different ASCII values\nEvery subsequent value in ASCII is the previous value + 1. e.g. “a” is 97 in ASCII, “b” will be 98 (which is 97 + 1)\nImportant ASCII values (in denary) to remember are as follows:\n0 is at 48\nA is at 65\na is at 97\nASCII uses one byte to store the value\nWhen the ASCII value of a character is converted to binary, it can be seen that the sixth-bit changes from 1 to 0 when going from lowercase to uppercase of a character, and the rest remains the same. ",
+#     "Introduction\nNowadays, computers are an integral part of our lives. They are used for the reservation of tickets for airplanes and railways, payment of telephone and electricity bills, deposit and withdrawal of money from banks, processing of business data, forecasting of weather conditions, diagnosis of diseases, searching for information on the Internet, etc. Computers are also used extensively in schools, universities, organizations, music industry, movie industry, scientific research, law firms, fashion industry, etc. \nThe term computer is derived from the word compute. The word compute means to calculate. A computer is an electronic machine that accepts data from the user, processes the data by performing calculations and operations on it, and generates the desired output results. Computer performs both simple and complex operations, with speed and accuracy. \nThis chapter discusses the history and evolution of computer, the concept of input-process-output and the characteristics of computer. This chapter also discusses the classification of digital computers based on their size and type, and the application of computer in different domain areas.\nDigital and Analog Computers\nA digital computer uses distinct values to represent the data internally. All information are represented using the digits Os and 1s. The computers that we use at our homes and offices are digital computers. Analog computer is another kind of a computer that represents data as variable across a continuous range of values. The earliest computers were analog computers. \nAnalog computers are used for measuring of parameters that vary continuously in real time, such as temperature, pressure and voltage. Analog computers may be more flexible but generally less precise than digital computers. Slide rule is an example of an analog computer. \nThis book deals only with the digital computer and uses the term computer for them. \nCharacteristics of Computer\nSpeed, accuracy, diligence, storage capability and versatility are some of the key characteristics of a computer. A brief overview of these characteristics are— \nSpeed: The computer can process data very fast, at the rate of millions of instructions per second. Some calculations that would have taken hours and days to complete otherwise, can be completed in a few seconds using the computer. For example, calculation and generation of salary slips of thousands of employees of an organization, weather forecasting that requires analysis of a large amount of data related to temperature, pressure and humidity of various places, etc. \nAccuracy: Computer provides a high degree of accuracy. For example, the computer can accurately give the result of division of any two numbers up to 10 decimal places. Diligence When used for a longer period of time, the computer does not get tired or fatigued. It can perform long and complex calculations with the same speed and accuracy from the start till the end.\nStorage Capability: Large volumes of data and information can be stored in the computer and also retrieved whenever required. A limited amount of data can be stored, temporarily, in the primary memory. Secondary storage devices like floppy disk and compact disk can store a large amount of data permanently. \nVersatility: Computer is versatile in nature. It can perform different types of tasks with the same ease. At one moment you can use the computer to prepare a letter document and in the next moment you may play music or print a document. \nComputers have several limitations too. Computer can only perform tasks that it has been programmed to do. Computer cannot do any work without instructions from the user. It executes instructions as specified by the user and does not take its own decisions. \nHistory of Computer\nUntil the development of the first generation computers based on vacuum tubes, there had been several developments in the computing technology related to the mechanical computing devices. The key developments that took place till the first computer was developed are as follows—\nCalculating Machines: ABACUS was the first mechanical calculating device for counting of large numbers. The word ABACUS means calculating board. It consists of bars in horizontal positions on which sets of beads are inserted. The horizontal bars have 10 beads each, representing units, tens, hundreds, etc. An abacus is shown.\nNapier's Bones: was a mechanical device built for the purpose of multiplication in 1617 ad. by an English mathematician John Napier. \nSlide Rule: was developed by an English mathematician Edmund Gunter in the 16th century. Using the slide rule, one could perform operations like addition, subtraction, multiplication and division. It was used extensively till late 1970s. Figure 1.2 shows a slide rule. \nPascal’s Adding and Subtraction Machine: was developed by Blaise Pascal. It could add and subtract. The machine consisted of wheels, gears and cylinders.\n Leibniz’s Multiplication and Dividing Machine: was a mechanical device that could both multiply and divide. The German philosopher and mathematician Gottfried Leibniz built it around 1673. \nPunch Card System: was developed by Jacquard to control the power loom in 1801. He invented the punched card reader that could recognize the presence of hole in the punched card as binary one and the absence of the hole as binary zero. The Os and 1s are the basis of the modern digital computer. A punched card is shown in Figure 1.3. \nThe developments discussed above and several others not discussed here, resulted in the development of the first computer in the 1940s. ",
+#     "",
+#     "",
+#     "This is a test\n"
+# ]
+# llm_model, tokenizer = loadMultiModalLLM()
+# passage_ranker = load_passage_ranker()
+# question_duplicate_model, question_duplicate_tokenizer = load_question_duplicate_model()
+
+# result = get_relevant_snippets_notes("What is a computer?", notes[2], question_duplicate_tokenizer, passage_ranker)
+
+# print(result)
+
+async def question_and_answer_with_notes(llm_model: FastVisionModel, tokenizer: AutoTokenizer, question: str, notes: list[str], question_duplicate_tokenizer, passage_ranker) -> str:
+
+    relevant_snippets = get_relevant_snippets_notes(query = question, notes = notes, tokenizer = question_duplicate_tokenizer, passage_ranker = passage_ranker)
+    relevant_snippets = deepcopy(sorted(relevant_snippets, key = lambda snippet: snippet["retrieval_score"], reverse = True)[:5])
+
+    evidences = []
+    for snippet in relevant_snippets:
+        evidences.append(snippet["text"])
+    
+    user_input = QUESTION_WITH_RAG_PROMPT.format(context = evidences, question = question)
+
+    logger.info(f"RAG User Input: {user_input}")
+
+    r = generateLLMOutput(llm_model, tokenizer, user_input)
+
+    return r
