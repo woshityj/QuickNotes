@@ -30,7 +30,7 @@ export async function getDocuments(req, res) {
     try {
         let parentDocumentId = req.params.parentDocumentId;
 
-        const userId = (await getUserId(req.headers['authorization']));
+        const userId = await getUserId(req.headers['authorization']);
 
         let conditions = [];
         if (!!parentDocumentId) {
@@ -61,6 +61,7 @@ export async function getDocument(req, res) {
 
         let document = await DocumentItem.findOne({ _id: id }).populate("lastEditedBy", "name");
 
+        // Document is published and not archived (Document is public)
         if (document.isPublished && !document.isArchived) {
             return res.status(200).send(document);
         }
@@ -104,7 +105,7 @@ export async function updateDocument(req, res) {
         
         // const existingDocument = await DocumentItem.findOne({ _id: id, userId: userId }).populate("lastEditedBy", "name");
 
-        const document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$set: { title: title, content: content, coverImage: coverImage, icon: icon, isPublished: isPublished, lastEditedBy: userId }}).populate("lastEditedBy", "name");
+        const document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$set: { title: title, content: content, coverImage: coverImage, icon: icon, isPublished: isPublished, lastEditedBy: userId }}, { new: true }).populate("lastEditedBy", "name");
 
         if (!document) {
             return res.status(404).send("Document Not Found");
@@ -146,7 +147,7 @@ export async function archiveDocument(req, res) {
         const userId = await getUserId(req.headers['authorization']);
 
         const recursiveArchive = async (documentId) => {
-            await DocumentItem.updateMany({ userId: userId, parentDocument: documentId }, {$set: { isArchived: true, lastEditedBy: userId }});
+            await DocumentItem.updateMany({ userId: userId, parentDocument: documentId }, {$set: { isArchived: true, lastEditedBy: userId }}, { new: true });
 
             const children = await DocumentItem.find({ userId: userId, parentDocument: documentId });
 
@@ -155,7 +156,7 @@ export async function archiveDocument(req, res) {
             }
         }
 
-        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$set: { isArchived: true, lastEditedBy: userId }}).populate("lastEditedBy", "name");
+        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$set: { isArchived: true, lastEditedBy: userId }}, { new : true }).populate("lastEditedBy", "name");
 
         recursiveArchive(document._id);
         
@@ -218,7 +219,7 @@ export async function restoreDocument(req, res) {
             }
         }
 
-        let updatedDocument = await DocumentItem.findOneAndUpdate({ _id: id }, {$set: {isArchived: false, lastEditedBy: userId}}).populate("lastEditedBy", "name");
+        let updatedDocument = await DocumentItem.findOneAndUpdate({ _id: id }, {$set: {isArchived: false, lastEditedBy: userId}}, { new: true }).populate("lastEditedBy", "name");
 
         recursiveRestore(id);
         
@@ -278,7 +279,7 @@ export async function removeDocumentIcon(req, res) {
 
         const userId = await getUserId(req.headers['authorization']);
 
-        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$unset: {icon: "", lastEditedBy: userId}}).populate("lastEditedBy", "name");
+        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$unset: {icon: "", lastEditedBy: userId}}, { new: true }).populate("lastEditedBy", "name");
         
         res.status(200).send(document);
     } catch (err) {
@@ -311,7 +312,7 @@ export async function createDocumentFromTemplate(req, res) {
 
             let template = await getTemplate(templateId);
     
-            let document = new DocumentItem({ title: template.title, userId: userId, content: template.content, lastEditedBy: userId }).populate("lastEditedBy", "name");
+            let document = new DocumentItem({ title: template.title, userId: userId, content: template.content, lastEditedBy: userId });
 
             await document.save();
 

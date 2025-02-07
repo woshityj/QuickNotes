@@ -15,6 +15,14 @@ const TemplateSchema = new Schema({
     content: {
         type: String
     },
+    coverImage: {
+        type: String,
+        required: false
+    },
+    icon: {
+        type: String,
+        required: false
+    },
     isPublic: {
         type: Boolean,
         default: true

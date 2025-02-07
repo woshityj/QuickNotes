@@ -1,10 +1,10 @@
+import DocumentItem from "../models/document.model.js";
 import TemplateItem from "../models/template.model.js";
 import { getUserId } from "./userController.js";
 
 export async function createTemplate(req, res) {
     try {
-        const title = req.body['title'];
-        const content = req.body['content'];
+        const documentId = req.body['documentId'];
         
         if (req.headers['authorization']) {
             const userId = await getUserId(req.headers['authorization']);
@@ -13,14 +13,20 @@ export async function createTemplate(req, res) {
                 return res.status(401).send("Unauthorized");
             }
 
-            let template = new TemplateItem({ title: title, userId: userId, content: content });
+            const document = await DocumentItem.findOne({ _id: documentId, userId: userId }).populate("lastEditedBy", "name");
+
+            if (!document) {
+                return res.status(401).send("Document not found");
+            }
+
+            let template = new TemplateItem({ title: document.title, userId: userId, content: document.content, coverImage: document.coverImage, icon: document.icon, isPublic: true });
 
             await template.save();
 
             return res.status(200).send(template);
         }
 
-        res.status(401).send("Unauthorized");
+        return res.status(401).send("Unauthorized");
 
     } catch (err) {
         console.log(err);

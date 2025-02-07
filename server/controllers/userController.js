@@ -143,3 +143,24 @@ export async function refreshToken(req, res) {
         return res.status(400).send("Invalid refresh token.");
     }
 }
+
+export async function deleteUser(req, res) {
+    
+    const authorizationToken = req.headers['authorization'];
+
+    try {
+        const decoded = jwt.verify(authorizationToken, jwtToken);
+        const userId = decoded.user.id;
+
+        let user = await UserItem.findOneAndDelete({ _id: userId });
+
+        if (!user) {
+            return res.status(400).json({ msg: "Failed to delete user."});
+        }
+
+        return res.status(200).send(user);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+}

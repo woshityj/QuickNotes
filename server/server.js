@@ -13,10 +13,11 @@ import bodyParser from "body-parser";
 
 const PORT = process.env.PORT || 5050;
 const app = express();
-const mongoURI = process.env.ATLAS_URI || "";
+// const mongoURI = process.env.ATLAS_URI || "";
+const mongoURI = "mongodb://127.0.0.1:27017/test";
 
 const corsOptions = {
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "*"],
     credentials: true,
     exposedHeaders: ['Authorization']
 };
