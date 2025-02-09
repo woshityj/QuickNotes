@@ -75,3 +75,13 @@ fastapi dev llm_model/main.py
 netstat -a -n -o | find "8000"
 taskkill /F /PID <PID>
 ```
+
+
+## QA Testing
+
+### Backend Generate K6 Web Dashboard Report
+---
+1. Run the following command
+```shell
+k6 run [filename] --out 'web-dashboard'
+```

@@ -6,21 +6,77 @@ import { check, sleep } from "k6";
 //     duration: '30s',
 // };
 
+let authorizationToken = '';
+let refreshToken = '';
+let name = `test_user${Math.random().toString(36).substring(2, 5)}`;
+let email = `${name}@gmail.com`;
+let password = 'password';
+
+
+export const options = {
+    scenarios: {
+        register_secnario: {
+            executor: 'shared-iterations',
+
+            vus: 10,
+            iterations: 10,
+            exec: 'testRegister',
+            maxDuration: '10s',
+            gracefulStop: '0s',
+        },
+        
+        login_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 10,
+            iterations: 10,
+            exec: 'testLogin',
+            maxDuration: '10s',
+            gracefulStop: '0s',
+            startTime: '10s',
+        },
+
+        get_user_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 10,
+            iterations: 10,
+            exec: 'testGetUser',
+            maxDuration: '10s',
+            gracefulStop: '0s',
+            startTime: '20s',
+        },
+
+        refresh_token_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 10,
+            iterations: 10,
+            exec: 'testRefreshToken',
+            maxDuration: '10s',
+            gracefulStop: '0s',
+            startTime: '30s',
+        }
+    }
+};
+
 const BASE_URL = "http://localhost:5050";
 
-export default function () {
-    testGetUser();
-    sleep(1); // Simulate users thinking time
-}
+// export default function () {
+//     testRegister();
+//     testLogin();
+//     testRefreshToken();
+//     sleep(1); // Simulate users thinking time
+// }
 
 let cookies = {};
 
-function testLogin() {
+export function testLogin() {
     const url = `${BASE_URL}/users/login`;
     
     const payload = JSON.stringify({
-        email: 'testing12345@gmail.com',
-        password: 'password'
+        email: email,
+        password: password
     });
 
     const params = {
@@ -30,18 +86,15 @@ function testLogin() {
     };
 
     let res = http.post(url, payload, params);
+    authorizationToken = res.headers['Authorization'];
 
     check(res, {
         'POST /login status is 200': (r) => r.status === 200
     });
 }
 
-function testRegister() {
+export function testRegister() {
     const url =`${BASE_URL}/users/register`;
-
-    let name = `test_user_${Math.random().toString(36).substring(2, 5)}`;
-    let email = `${name}@gmail.com`;
-    let password = 'password';
     
     const payload = JSON.stringify({
         name: name,
@@ -62,13 +115,13 @@ function testRegister() {
     });
 }
 
-function testRefreshToken() {
+export function testRefreshToken() {
     const loginUrl = `${BASE_URL}/users/login`;
     const refreshUrl =`${BASE_URL}/users/refresh`;
 
     const loginPayload = JSON.stringify({
-        email: 'testing12345@gmail.com',
-        password: 'password'
+        email: email,
+        password: password
     });
 
     const params = {
@@ -78,33 +131,36 @@ function testRefreshToken() {
     };
 
     let loginRes = http.post(loginUrl, loginPayload, params);
+    authorizationToken = loginRes.headers['Authorization'];
 
     let setCookiesHeader = loginRes.headers['Set-Cookie'];
     if (setCookiesHeader) {
         let cookieMatch = setCookiesHeader.match(/refreshToken=([^;]+)/);
         if (cookieMatch) {
-            cookies['refreshToken'] = cookieMatch[1];
+            refreshToken = cookieMatch[1];
         }
     }
 
     let refreshRes = http.post(refreshUrl, null, {
         headers: {
-            'Cookie': `refreshToken=${cookies['refreshToken']}`
+            'Cookie': `refreshToken=${refreshToken}`
         }
     });
 
     check(refreshRes, {
-        'POST /refresh status is 200': (r) => r.status === 200
+        'POST /refresh status is 200': (r) => r.status === 200,
+        'Check authorization token': (r) => r.headers['Authorization'] !== '',
+        'Check refresh token': (r) => r.headers['Set-Cookie'] !== ''
     });
 }
 
-function testGetUser() {
+export function testGetUser() {
     const loginUrl = `${BASE_URL}/users/login`;
     const url =`${BASE_URL}/users`;
 
     const loginPayload = JSON.stringify({
-        email: 'testing12345@gmail.com',
-        password: 'password'
+        email: email,
+        password: password
     });
 
     const params = {
@@ -114,7 +170,7 @@ function testGetUser() {
     };
 
     let loginRes = http.post(loginUrl, loginPayload, params);
-    let authorizationToken = loginRes.headers['Authorization'];
+    authorizationToken = loginRes.headers['Authorization'];
 
     let res = http.get(url, {
         headers: {

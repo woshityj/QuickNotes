@@ -279,7 +279,7 @@ export async function removeDocumentIcon(req, res) {
 
         const userId = await getUserId(req.headers['authorization']);
 
-        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$unset: {icon: "", lastEditedBy: userId}}, { new: true }).populate("lastEditedBy", "name");
+        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$set: {icon: "", lastEditedBy: userId}}, { new: true }).populate("lastEditedBy", "name");
         
         res.status(200).send(document);
     } catch (err) {
@@ -294,7 +294,7 @@ export async function removeDocumentCoverImage(req, res) {
 
         const userId = await getUserId(req.headers['authorization']);
 
-        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$unset: {coverImage: "", lastEditedBy: userId}}).populate("lastEditedBy", "name");
+        let document = await DocumentItem.findOneAndUpdate({ _id: id, userId: userId }, {$set: {coverImage: "", lastEditedBy: userId}}, { new: true }).populate("lastEditedBy", "name");
 
         res.status(200).send(document);
     } catch (err) {

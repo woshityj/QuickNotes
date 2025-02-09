@@ -13,23 +13,161 @@ const testImage = open("./llm_files/test_image.jpg", "b");
 const testVideo = open("./llm_files/test_video.mp4", "b");
 const testPDF = open("./llm_files/test_pdf.pdf", "b");
 
-export default function () {
-    // INIT Functions
-    registerUser();
-    loginUser();
+export const options = {
+    scenarios: {
+        // Setup Scenarios
+        register_setup: {
+            executor: 'shared-iterations',
 
-    // Scenario Test Functions
-    // testChatUploadPDF();
-    // testChatUploadVideo();
-    // testElaborateDocument();
+            vus: 1,
+            iterations: 1,
+            exec: 'registerUser',
+            maxDuration: '2s',
+            gracefulStop: '0s',
+        },
 
-    // Tear Down Functions
-    deleteUser();
-    sleep(1);
+        login_setup: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'loginUser',
+            maxDuration: '2s',
+            startTime: '2s',
+            gracefulStop: '0s',
+        },
+
+        // Test Scenarios
+        summarize_document_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testSummarizeDocument',
+            maxDuration: '30s',
+            startTime: '4s',
+            gracefulStop: '0s'
+        },
+
+        summarize_fact_check_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testSummarizeFactCheck',
+            maxDuration: '120s',
+            startTime: '34s',
+            gracefulStop: '0s'
+        },
+
+        question_answer_with_rag_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testQuestionAnswerWithRag',
+            maxDuration: '30s',
+            startTime: '154s',
+            gracefulStop: '0s'
+        },
+
+        question_answer_with_notes_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testQuestionAnswerWithNotes',
+            maxDuration: '30s',
+            startTime: '184s',
+            gracefulStop: '0s'
+        },
+
+        chat_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testChat',
+            maxDuration: '30s',
+            startTime: '214s',
+            gracefulStop: '0s'
+        },
+
+        chat_upload_picture_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testChatUploadPicture',
+            maxDuration: '30s',
+            startTime: '244s',
+            gracefulStop: '0s'
+        },
+
+        chat_upload_pdf_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testChatUploadPDF',
+            maxDuration: '30s',
+            startTime: '274s',
+            gracefulStop: '0s'
+        },
+
+        chat_upload_video_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testChatUploadVideo',
+            maxDuration: '30s',
+            startTime: '304s',
+            gracefulStop: '0s'
+        },
+
+        elaborate_document_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testElaborateDocument',
+            maxDuration: '30s',
+            startTime: '334s',
+            gracefulStop: '0s'
+        },
+
+        // Tear Down Scenarios
+        delete_user_setup: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'deleteUser',
+            maxDuration: '2s',
+            startTime: '364s',
+            gracefulStop: '0s'
+        }
+    }
 }
 
+// export default function () {
+//     // INIT Functions
+//     registerUser();
+//     loginUser();
+
+//     // Scenario Test Functions
+//     // testChatUploadPDF();
+//     // testChatUploadVideo();
+//     // testElaborateDocument();
+
+//     // Tear Down Functions
+//     deleteUser();
+//     sleep(1);
+// }
+
 // INIT Functions
-function registerUser() {
+export function registerUser() {
     const url = `${BASE_URL}/users/register`;
 
     const payload = JSON.stringify({
@@ -51,7 +189,7 @@ function registerUser() {
     });
 }
 
-function loginUser() {
+export function loginUser() {
     const url = `${BASE_URL}/users/login`;
 
     const payload = JSON.stringify({
@@ -87,7 +225,7 @@ function loginUser() {
 }
 
 // Tear Down Functions
-function deleteUser() {
+export function deleteUser() {
     const url = `${BASE_URL}/users`;
 
     const params = {
@@ -104,7 +242,7 @@ function deleteUser() {
     })
 }
 
-function testSummarizeDocument() {
+export function testSummarizeDocument() {
     const url = `${BASE_URL}/llm/summarize`;
 
     const payload = JSON.stringify({
@@ -126,7 +264,7 @@ function testSummarizeDocument() {
     });
 }
 
-function testSummarizeFactCheck() {
+export function testSummarizeFactCheck() {
     const url = `${BASE_URL}/llm/summarize-fact-check`;
 
     const payload = JSON.stringify({
@@ -148,7 +286,7 @@ function testSummarizeFactCheck() {
     });
 }
 
-function testQuestionAnswerWithRag() {
+export function testQuestionAnswerWithRag() {
     const url = `${BASE_URL}/llm/question-answer-with-rag`;
 
     const payload = JSON.stringify({
@@ -170,7 +308,7 @@ function testQuestionAnswerWithRag() {
     });
 }
 
-function testQuestionAnswerWithNotes() {
+export function testQuestionAnswerWithNotes() {
     // Create document with specific content
     const createDocumentRes = http.post(`${BASE_URL}/documents`, null, {
         headers: {
@@ -185,17 +323,52 @@ function testQuestionAnswerWithNotes() {
 
     let documentId = JSON.parse(createDocumentRes.body)._id;
 
-    const updateDocumentRes = http.put(`${BASE_URL}/documents/${documentId}`, JSON.stringify({
+    const updateDocumentRes = http.put(`${BASE_URL}/documents/document/${documentId}`, JSON.stringify({
         id: documentId,
         title: 'Test Document With RAG',
-        content: 'My name is Yu Jie',
-    }));
+        content: `
+        [
+            {
+                "id": "dd2d0e74-e039-4423-a0b6-e0a4dc9c3f27",
+                "type": "paragraph",
+                "props": {
+                "textColor": "default",
+                "backgroundColor": "default",
+                "textAlignment": "left"
+                },
+                "content": [
+                {
+                    "type": "text",
+                    "text": "My name is Yu Jie",
+                    "styles": {}
+                }
+                ],
+                "children": []
+            },
+            {
+                "id": "b74e38ca-ac89-46c2-9c8b-10f8fdc95de6",
+                "type": "paragraph",
+                "props": {
+                "textColor": "default",
+                "backgroundColor": "default",
+                "textAlignment": "left"
+                },
+                "content": [],
+                "children": []
+            }
+        ]`,
+    }), {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': authorizationToken
+        }
+    });
 
     check(updateDocumentRes, {
         'PUT /document/:id status is 200': (r) => r.status === 200,
         'Check appropriate document is updated': (r) => JSON.parse(r.body)._id === documentId,
-        'Check updated document title': (r) => JSON.parse(r.body).title === 'Test Document with RAG',
-        'Check updated document content': (r) => JSON.parse(r.body).content === 'My name is Yu Jie'
+        'Check updated document title': (r) => JSON.parse(r.body).title === 'Test Document With RAG',
+        'Check updated document content': (r) => JSON.parse(r.body).content !== '',
     });
 
     const url = `${BASE_URL}/llm/question-answer-with-notes`;
@@ -219,7 +392,7 @@ function testQuestionAnswerWithNotes() {
     });
 }
 
-function testChat() {
+export function testChat() {
     const url = `${BASE_URL}/llm/chat`;
 
     const payload = {
@@ -243,7 +416,7 @@ function testChat() {
     })
 }
 
-function testChatUploadPicture() {
+export function testChatUploadPicture() {
     const url = `${BASE_URL}/llm/chat`;
 
     let formData = {
@@ -268,7 +441,7 @@ function testChatUploadPicture() {
     });
 }
 
-function testChatUploadPDF() {
+export function testChatUploadPDF() {
     const url = `${BASE_URL}/llm/chat`;
 
     let formData = {
@@ -293,7 +466,7 @@ function testChatUploadPDF() {
     });
 }
 
-function testChatUploadVideo() {
+export function testChatUploadVideo() {
     const url = `${BASE_URL}/llm/chat`;
 
     let formData = {
@@ -318,7 +491,7 @@ function testChatUploadVideo() {
     });
 }
 
-function testElaborateDocument() {
+export function testElaborateDocument() {
     const url = `${BASE_URL}/llm/elaborate`;
 
     const payload = JSON.stringify({

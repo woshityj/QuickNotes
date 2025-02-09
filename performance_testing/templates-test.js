@@ -11,23 +11,106 @@ let password = 'password';
 
 let documentId = '';
 
-export default function () {
-    // INIT Functions
-    registerUser();
-    loginUser();
-    createDocument();
+export const options = {
+    scenarios: {
+        // Setup Scenarios
+        register: {
+            executor: 'shared-iterations',
+            
+            vus: 1,
+            iterations: 1,
+            exec: 'registerUser',
+            maxDuration: '2s',
+            gracefulStop: '0s',
+        },
+        
+        login_setup: {
+            executor: 'shared-iterations',
+            
+            vus: 1,
+            iterations: 1,
+            exec: 'loginUser',
+            maxDuration: '2s',
+            startTime: '2s',
+            gracefulStop: '0s',
+        },
 
-    // Scenario Test Functions
-    testCreateTemplate();
-    testGetTemplates();
-    testCreateDocumentFromTemplate();
+        create_document_setup: {
+            executor: 'shared-iterations',
 
-    // Tear Down Functions
-    deleteUser();
+            vus: 1,
+            iterations: 1,
+            exec: 'createDocument',
+            maxDuration: '2s',
+            startTime: '4s',
+            gracefulStop: '0s'
+        },
+
+        // Scenario Tests
+        create_template_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testCreateTemplate',
+            maxDuration: '2s',
+            startTime: '6s',
+            gracefulStop: '0s'
+        },
+
+        get_templates_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testGetTemplates',
+            maxDuration: '2s',
+            startTime: '8s',
+            gracefulStop: '0s'
+        },
+
+        create_document_from_template_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testCreateDocumentFromTemplate',
+            maxDuration: '2s',
+            startTime: '10s',
+            gracefulStop: '0s'
+        },
+
+        // Tear Down Scenarios
+        delete_user_setup: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'deleteUser',
+            startTime: '12s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        }
+    }
 }
 
+// export default function () {
+//     // INIT Functions
+//     registerUser();
+//     loginUser();
+//     createDocument();
+
+//     // Scenario Test Functions
+//     testCreateTemplate();
+//     testGetTemplates();
+//     testCreateDocumentFromTemplate();
+
+//     // Tear Down Functions
+//     deleteUser();
+// }
+
 // INIT Functions
-function registerUser() {
+export function registerUser() {
     const url = `${BASE_URL}/users/register`;
 
     const payload = JSON.stringify({
@@ -49,7 +132,7 @@ function registerUser() {
     });
 }
 
-function loginUser() {
+export function loginUser() {
     const url = `${BASE_URL}/users/login`;
 
     const payload = JSON.stringify({
@@ -84,7 +167,7 @@ function loginUser() {
     });
 }
 
-function createDocument() {
+export function createDocument() {
 
     let createDocumentRes = http.post(`${BASE_URL}/documents`, null, {
         headers: {
@@ -119,7 +202,7 @@ function createDocument() {
 }
 
 // Tear Down Functions
-function deleteUser() {
+export function deleteUser() {
     const url = `${BASE_URL}/users`;
 
     const params = {
@@ -136,7 +219,7 @@ function deleteUser() {
     })
 }
 
-function testCreateTemplate() {
+export function testCreateTemplate() {
     const url = `${BASE_URL}/templates`;
 
     const payload = JSON.stringify({
@@ -159,7 +242,7 @@ function testCreateTemplate() {
     });
 }
 
-function testGetTemplates() {
+export function testGetTemplates() {
     const url = `${BASE_URL}/templates`;
 
     const params = {
@@ -176,7 +259,7 @@ function testGetTemplates() {
     });
 }
 
-function testCreateDocumentFromTemplate() {
+export function testCreateDocumentFromTemplate() {
     let createTemplateRes = http.post(`${BASE_URL}/templates`, JSON.stringify({
         documentId: documentId
     }), {

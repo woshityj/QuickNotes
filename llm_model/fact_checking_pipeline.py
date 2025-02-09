@@ -42,7 +42,7 @@ def load_passage_ranker():
 
     return passage_ranker
 
-def fact_checking_pipeline(text: str, model: FastVisionModel, tokenizer: AutoTokenizer, question_duplicate_model: CrossEncoder, question_duplicate_tokenizer, passage_ranker: CrossEncoder) -> str:
+async def fact_checking_pipeline(text: str, model: FastVisionModel, tokenizer: AutoTokenizer, question_duplicate_model: CrossEncoder, question_duplicate_tokenizer, passage_ranker: CrossEncoder) -> str:
 
     sentences = convert_text_to_sentences(text = text, model = model, tokenizer = tokenizer)
     checkworthy_results = identify_checkworthiness(texts = sentences, model = model, tokenizer = tokenizer)

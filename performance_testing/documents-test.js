@@ -9,24 +9,197 @@ let name = `test_user_${Math.random().toString(36).substring(2, 5)}`;
 let email = `${name}@gmail.com`;
 let password = 'password';
 
-export default function () {
-    // INIT Funnctions
-    registerUser();
-    loginUser();
+export const options = {
+    scenarios: {
+        // Setup Scenarios
+        register_setup: {
+            executor: 'shared-iterations',
 
-    // Scenario Test Functions
-    // testCreateDocument();
-    // testArchiveDocument();
-    testGetArchivedDocuments();
+            vus: 1,
+            iterations: 1,
+            exec: 'registerUser',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
 
-    // Tear Down Functions
-    deleteUser();
+        login_setup: {
+            executor: 'shared-iterations',
 
-    sleep(1);
+            vus: 1,
+            iterations: 1,
+            exec: 'loginUser',
+            startTime: '2s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        // Scenario Tests
+        create_document_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testCreateDocument',
+            startTime: '4s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        get_documents_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testGetDocuments',
+            startTime: '6s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        get_document_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testGetDocument',
+            startTime: '8s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        update_document_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testUpdateDocument',
+            startTime: '10s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        archive_document_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testArchiveDocument',
+            startTime: '12s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        get_archived_documents_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testGetArchivedDocuments',
+            startTime: '14s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        search_and_get_archived_document_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testSearchAndGetArchivedDocument',
+            startTime: '16s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        restore_document_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testRestoreDocument',
+            startTime: '18s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        remove_document_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testRemoveDocument',
+            startTime: '20s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        search_document_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testSearchDocuments',
+            startTime: '22s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        remove_document_icon_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testRemoveDocumentIcon',
+            startTime: '24s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        remove_document_cover_image_scenario: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'testRemoveDocumentCoverImage',
+            startTime: '26s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        },
+
+        // Tear Down Scenarios
+        delete_user_setup: {
+            executor: 'shared-iterations',
+
+            vus: 1,
+            iterations: 1,
+            exec: 'deleteUser',
+            startTime: '28s',
+            maxDuration: '2s',
+            gracefulStop: '0s'
+        }
+    }
 }
 
+// export default function () {
+//     // INIT Funnctions
+//     registerUser();
+//     loginUser();
+
+//     // Scenario Test Functions
+//     // testCreateDocument();
+//     // testArchiveDocument();
+//     // testGetArchivedDocuments();
+//     // testSearchAndGetArchivedDocument();
+//     // testRemoveDocumentCoverImage();
+
+//     // Tear Down Functions
+//     deleteUser();
+
+//     sleep(1);
+// }
+
 // INIT Functions
-function registerUser() {
+export function registerUser() {
     const url = `${BASE_URL}/users/register`;
 
     const payload = JSON.stringify({
@@ -48,7 +221,7 @@ function registerUser() {
     });
 }
 
-function loginUser() {
+export function loginUser() {
     const url = `${BASE_URL}/users/login`;
 
     const payload = JSON.stringify({
@@ -84,7 +257,7 @@ function loginUser() {
 }
 
 // Tear Down Functions
-function deleteUser() {
+export function deleteUser() {
     const url = `${BASE_URL}/users`;
 
     const params = {
@@ -102,7 +275,7 @@ function deleteUser() {
 }
 
 // Scenario Test Functions
-function testCreateDocument() {
+export function testCreateDocument() {
     const url = `${BASE_URL}/documents`;
 
     const params = {
@@ -119,7 +292,7 @@ function testCreateDocument() {
     });
 }
 
-function testGetDocuments() {
+export function testGetDocuments() {
     const url = `${BASE_URL}/documents`;
     
     const params = {
@@ -136,7 +309,7 @@ function testGetDocuments() {
     });
 }
 
-function testGetDocument() {
+export function testGetDocument() {
     const createDocumentRes = http.post(`${BASE_URL}/documents`, null, {
         headers: {
             'Content-Type': 'application/json',
@@ -168,7 +341,7 @@ function testGetDocument() {
     });
 }
 
-function testUpdateDocument() {
+export function testUpdateDocument() {
     const createDocumentRes = http.post(`${BASE_URL}/documents`, null, {
         headers: {
             'Content-Type': 'application/json',
@@ -207,7 +380,7 @@ function testUpdateDocument() {
     });
 }
 
-function testArchiveDocument() {
+export function testArchiveDocument() {
     const createDocumentRes = http.post(`${BASE_URL}/documents`, null, {
         headers: {
             'Content-Type': 'application/json',
@@ -244,7 +417,7 @@ function testArchiveDocument() {
     });
 }
 
-function testGetArchivedDocuments() {
+export function testGetArchivedDocuments() {
     const createDocumentRes = http.post(`${BASE_URL}/documents`, null, {
         headers: {
             'Content-Type': 'application/json',
@@ -292,7 +465,7 @@ function testGetArchivedDocuments() {
     });
 }
 
-function testSearchAndGetArchivedDocument() {
+export function testSearchAndGetArchivedDocument() {
     const createDocumentRes = http.post(`${BASE_URL}/documents`, null, {
         headers: {
             'Content-Type': 'application/json',
@@ -324,7 +497,7 @@ function testSearchAndGetArchivedDocument() {
 
     const archivedDocumentTitle = JSON.parse(archiveDocumentRes.body).title;
 
-    const searchAndGetArchivedDocumentUrl = `${BASE_URL}/documents/${archivedDocumentTitle}`;
+    const searchAndGetArchivedDocumentUrl = `${BASE_URL}/documents/archived-documents/${archivedDocumentTitle}`;
     
     const params = {
         headers: {
@@ -341,7 +514,7 @@ function testSearchAndGetArchivedDocument() {
     });
 }
 
-function testRestoreDocument() {
+export function testRestoreDocument() {
     const createDocumentRes = http.post(`${BASE_URL}/documents`, null, {
         headers: {
             'Content-Type': 'application/json',
@@ -393,7 +566,7 @@ function testRestoreDocument() {
     });
 }
 
-function testRemoveDocument() {
+export function testRemoveDocument() {
     const createDocumentRes = http.post(`${BASE_URL}/documents`, null, {
         headers: {
             'Content-Type': 'application/json',
@@ -439,7 +612,7 @@ function testRemoveDocument() {
     });
 }
 
-function testSearchDocuments() {
+export function testSearchDocuments() {
     const createDocumentRes = http.post(`${BASE_URL}/documents`, null, {
         headers: {
             'Content-Type': 'application/json',
@@ -472,7 +645,7 @@ function testSearchDocuments() {
     });
 }
 
-function testRemoveDocumentIcon() {
+export function testRemoveDocumentIcon() {
     const createDocumentRes = http.post(`${BASE_URL}/documents`, null, {
         headers: {
             'Content-Type': 'application/json',
@@ -501,7 +674,7 @@ function testRemoveDocumentIcon() {
     check(updateDocumentRes, {
         'PUT /document/:id status is 200': (r) => r.status === 200,
         'Check appropriate document is updated': (r) => JSON.parse(r.body)._id === documentId,
-        'Check updated document title': (r) => JSON.parse(r.body).title === 'Document with icon',
+        'Check updated document title': (r) => JSON.parse(r.body).title === 'Document with Icon',
         'Check updated document icon': (r) => JSON.parse(r.body).icon === '😍'
     });
 
@@ -519,11 +692,11 @@ function testRemoveDocumentIcon() {
     check(removeDocumentIconRes, {
         'PUT /remove-document-icon/:id status is 200': (r) => r.status === 200,
         'Check appropriate document is updated': (r) => JSON.parse(r.body)._id === documentId,
-        'Check document icon is removed': (r) => JSON.parse(r.body).icon.length === 0,
+        'Check document icon is removed': (r) => JSON.parse(r.body).icon === '',
     });
 }
 
-function testRemoveDocumentCoverImage() {
+export function testRemoveDocumentCoverImage() {
     const createDocumentRes = http.post(`${BASE_URL}/documents`, null, {
         headers: {
             'Content-Type': "application/json",
@@ -538,11 +711,16 @@ function testRemoveDocumentCoverImage() {
 
     let documentId = JSON.parse(createDocumentRes.body)._id;
 
-    const updateDocumentRes = http.put(`${BASE_URL}/doucments/document/${documentId}`, JSON.stringify({
+    const updateDocumentRes = http.put(`${BASE_URL}/documents/document/${documentId}`, JSON.stringify({
         id: documentId,
         title: 'Document with Cover Image',
         coverImage: 'https://files.edgestore.dev/z6g0ga6ejtnk778m/publicFiles/_public/1de31520-aece-422e-b68a-2ab86bb7b3d4.jpg'
-    }));
+    }), {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': authorizationToken
+        }
+    });
 
     check(updateDocumentRes, {
         'PUT /document/:id status is 200': (r) => r.status === 200,
@@ -565,6 +743,6 @@ function testRemoveDocumentCoverImage() {
     check(removeDocumentCoverImageRes, {
         'PUT /remove-document-cover-image/:id status is 200': (r) => r.status === 200,
         'Check appropriate document is updated': (r) => JSON.parse(r.body)._id === documentId,
-        'Check document cover image is removed': (r) => JSON.parse(r.body).coverImage.length === 0,
+        'Check document cover image is removed': (r) => JSON.parse(r.body).coverImage === '',
     });
 }
