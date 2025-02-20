@@ -6,10 +6,11 @@ export type Template = {
     title: string,
     userId: string,
     content: string,
+    coverImage: string,
     isPublic: boolean
 }
 
-export async function createTemplate({title, content, authorizationToken}: {title: string, content: string, authorizationToken?: string}) {
+export async function createTemplate({documentId, authorizationToken}: {documentId: string, authorizationToken?: string}) {
     try {
         const response = await fetch(`${backendURL}/templates/`, {
             method: "POST",
@@ -18,7 +19,7 @@ export async function createTemplate({title, content, authorizationToken}: {titl
                 "Content-Type": "application/json",
                 "Authorization": authorizationToken || ""
             },
-            body: JSON.stringify({title: title, content: content}),
+            body: JSON.stringify({documentId: documentId}),
             credentials: 'include'
         });
 

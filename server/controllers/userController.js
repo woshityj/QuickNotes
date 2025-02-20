@@ -28,13 +28,13 @@ export async function getUserId(authorizationToken) {
 
 export async function getUser(req, res) {
     const authorizationToken = req.headers['authorization'];
-    console.log(authorizationToken);
+    // console.log(authorizationToken);
 
     try {
         const decoded = jwt.verify(authorizationToken, jwtToken);
-        console.log(decoded);
+        // console.log(decoded);
         const userId = decoded.user.id;
-        console.log(userId);
+        // console.log(userId);
 
         let user = await UserItem.findOne({ _id: userId });
 
@@ -124,7 +124,7 @@ export async function refreshToken(req, res) {
 
     try {
         const decoded = jwt.verify(refreshToken, jwtToken);
-        console.log(decoded.user.id);
+        // console.log(decoded.user.id);
         const payload = {
             user: {
                 id: decoded.user.id
@@ -134,8 +134,8 @@ export async function refreshToken(req, res) {
         const refToken = jwt.sign(payload, jwtToken, { expiresIn: '1d' });
         
 
-        console.log("test");
-        console.log(accessToken);
+        // console.log("test");
+        // console.log(accessToken);
         res.cookie('refreshToken', refToken, { httpOnly: false, sameSite: 'Lax', secure: false })
             .header('Authorization', accessToken)
             .send(decoded.user);

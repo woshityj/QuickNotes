@@ -15,6 +15,8 @@ const PORT = process.env.PORT || 5050;
 const app = express();
 // const mongoURI = process.env.ATLAS_URI || "";
 const mongoURI = "mongodb://127.0.0.1:27017/test";
+// mongodb://localhost:27017/?tls=true&tlsAllowInvalidCertificates=true
+
 
 const corsOptions = {
     origin: ["http://localhost:3000", "*"],
@@ -28,7 +30,9 @@ app.use(bodyParser.urlencoded({limit: '50mb', extended: true}));
 app.use(express.json());
 
 
-mongoose.connect(mongoURI)
+mongoose.connect(mongoURI, {
+    ssl: false
+})
         .then(() => console.log("MongoDB Connected."))
         .catch(err => console.error(err));
 

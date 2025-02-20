@@ -14,7 +14,7 @@ let documentId = '';
 export const options = {
     scenarios: {
         // Setup Scenarios
-        register: {
+        register_setup: {
             executor: 'shared-iterations',
             
             vus: 1,

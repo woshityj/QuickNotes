@@ -3,6 +3,7 @@
 from llm_multi_model import loadMultiModalLLM, textSummarizationMultiModal, customChatWithMultiModelLLM, imagesWithMultiModelLLM, customChatVideoTranscriptWithMultiModelLLM, textElaborationMultiModel, question_and_answer_with_rag
 from document_processing import convertBase64PDFToImages, convertVideoToText
 from fact_checking_pipeline import fact_checking_pipeline, load_question_duplicate_model, load_passage_ranker, question_and_answer_with_notes
+from rag import load_wikipedia_embeddings_model
 
 from fastapi import FastAPI, UploadFile, File, Form, Depends
 from fastapi.encoders import jsonable_encoder
@@ -51,6 +52,7 @@ app = FastAPI()
 llm_model, tokenizer = loadMultiModalLLM()
 question_duplicate_model, question_duplicate_tokenizer = load_question_duplicate_model()
 passage_ranker = load_passage_ranker()
+embeddings_model = load_wikipedia_embeddings_model()
 
 def convert_messages_to_json(messages: List[Message]) -> str:
 
@@ -222,7 +224,7 @@ async def image(text: Annotated[str, Form()], image: UploadFile | None = None):
 async def question_answer_with_rag(content: Content):
     try:
 
-        response = await question_and_answer_with_rag(llm_model, tokenizer, content.content)
+        response = await question_and_answer_with_rag(llm_model, tokenizer, content.content, embeddings_model)
 
         return {"data": response}
     

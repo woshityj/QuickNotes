@@ -96,7 +96,7 @@ def load_wikipedia_embeddings_model():
     embeddings = Embeddings()
     embeddings_model = embeddings.load(provider="huggingface-hub", container="neuml/txtai-wikipedia")
 
-    return embeddings_model
+    return embeddings_model 
 
 def rag_retrieval(query: str, embeddings_model, num_results: int = 5):
 

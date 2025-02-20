@@ -54,7 +54,7 @@ export default function Menu({documentId, lastEditedBy}: MenuProps) {
         event.stopPropagation();
 
         let document = await getDocument(documentId, cookies.get("AuthorizationToken"));
-        saveTemplateMutate.mutate({ title: document.title, content: document.content, authorizationToken: cookies.get("AuthorizationToken") });
+        saveTemplateMutate.mutate({ documentId: documentId, authorizationToken: cookies.get("AuthorizationToken") });
     }
 
     return (

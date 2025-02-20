@@ -32,6 +32,7 @@ export const TemplateList = () => {
                     key = {template._id}
                     _id = {template._id}
                     title = {template.title}
+                    coverImage = {template.coverImage}
                 />
             ))}
         </div>

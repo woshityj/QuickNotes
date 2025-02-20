@@ -409,8 +409,8 @@ def chunk_text(text:str, tokenizer, sentences_per_passage: int = 5, filter_sente
 def is_tag_visible(element: bs4.element) -> bool:
     if element.parent.name in [
         "style",
-        "script",
         "head",
+        "script",
         "title",
         "meta",
         "[document]",

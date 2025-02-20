@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent } from "react";
 import { useCookies } from "next-client-cookies";
 
-export const TemplateItem = ({_id, title}: {_id: string, title: string}) => {
+export const TemplateItem = ({_id, title, coverImage}: {_id: string, title: string, coverImage: string}) => {
 
     const queryClient = useQueryClient();
 
@@ -37,7 +37,13 @@ export const TemplateItem = ({_id, title}: {_id: string, title: string}) => {
 
     return (
         <div className="col-span-1 flex flex-col">
-            <img className="w-full h-auto" src="/static/images/template_img_1.jpeg" onClick={handleCreateDocumentFromTemplate} />
+            {
+                coverImage ? (
+                    <img className="w-80 h-52 object-cover rounded-md" src={coverImage} onClick={handleCreateDocumentFromTemplate} />
+                ) : (
+                    <img className="w-80 h-52 object-cover rounded-md" src="/static/images/template_img_1.jpeg" onClick={handleCreateDocumentFromTemplate} />
+                )
+            }
             <p className="text-sm font-medium leading-5 mt-2.5">
                 {title}
             </p>

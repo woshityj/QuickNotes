@@ -217,9 +217,9 @@ async def customChatVideoTranscriptWithMultiModelLLM(llm_model: FastVisionModel,
 
     return output_decoded  
 
-async def question_and_answer_with_rag(llm_model: FastVisionModel, tokenizer: AutoTokenizer, question: str) -> str:
+async def question_and_answer_with_rag(llm_model: FastVisionModel, tokenizer: AutoTokenizer, question: str, embeddings_model) -> str:
 
-    docs = rag_retrieval(question)
+    docs = rag_retrieval(question, embeddings_model)
     user_input = QUESTION_WITH_RAG_PROMPT.format(context = docs, question = question)
     
     logger.info(f"RAG User Input: {user_input}")

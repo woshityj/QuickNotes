@@ -83,5 +83,5 @@ taskkill /F /PID <PID>
 ---
 1. Run the following command
 ```shell
-k6 run [filename] --out 'web-dashboard'
+k6 run [filename] --out web-dashboard
 ```

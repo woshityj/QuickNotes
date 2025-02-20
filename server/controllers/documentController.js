@@ -312,7 +312,7 @@ export async function createDocumentFromTemplate(req, res) {
 
             let template = await getTemplate(templateId);
     
-            let document = new DocumentItem({ title: template.title, userId: userId, content: template.content, lastEditedBy: userId });
+            let document = new DocumentItem({ title: template.title, userId: userId, content: template.content, coverImage: template.coverImage, icon: template.icon, lastEditedBy: userId });
 
             await document.save();
 

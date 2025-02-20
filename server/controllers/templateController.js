@@ -5,6 +5,7 @@ import { getUserId } from "./userController.js";
 export async function createTemplate(req, res) {
     try {
         const documentId = req.body['documentId'];
+        console.log(documentId);
         
         if (req.headers['authorization']) {
             const userId = await getUserId(req.headers['authorization']);
