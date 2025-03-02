@@ -93,17 +93,21 @@ export default function ChatSupport() {
 			// If RAG is enabled, only send the message to the RAG model
 			if (ragEnabled && !notesRAGEnabled) {
 				const questionAnswerWithRagResult = await questionAnswerWithRag({ content: userMessage });
-
-				const answer = questionAnswerWithRagResult.data;
-
-				setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: answer } ]);
+				
+				if (questionAnswerWithRagResult.data) {
+					setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: questionAnswerWithRagResult.data } ]);
+				} else {
+					setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: "Sorry, I could not process your request at this time. Please try again later." } ]);
+				}
 			}
 			else if (notesRAGEnabled && !ragEnabled) {
 				const questionAnswerWithNotesResult = await questionAnswerWithNotes({ content: userMessage, authorizationToken: cookies.get("AuthorizationToken") });
 
-				const answer = questionAnswerWithNotesResult.data;
-
-				setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: answer } ]);
+				if (questionAnswerWithNotesResult.data) {
+					setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: questionAnswerWithNotesResult.data } ]);
+				} else {
+					setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: "Sorry, I could not process your request at this time. Please try again later." } ]);
+				}
 			}
 			// If RAG is not enabled, send the messages and file to the LLM model
 			else {

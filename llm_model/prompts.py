@@ -150,3 +150,14 @@ VIDEO_TRANSCRIPT_PROMPT = """Below is an instruction that describes a task, pair
 
 ### Response:
 """
+
+PDF_PROMPT = """Below is an instruction that describes a task, paired with an input that contains the contents extracted from a PDF file. Write a response that appropriately completes the request.
+
+### Instruction:
+{input_text}
+
+### Input:
+{md_text}
+
+### Response:
+"""

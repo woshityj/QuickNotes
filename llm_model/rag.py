@@ -101,9 +101,9 @@ def load_wikipedia_embeddings_model():
 def rag_retrieval(query: str, embeddings_model, num_results: int = 5):
 
     result = embeddings_model.search(query, limit = num_results)
-    # context = "\n".join([x["text"] for x in result])
+    context = "\n".join([x["text"] for x in result])
 
-    return result
+    return context
 
 # rag_indexing()
 

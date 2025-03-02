@@ -1,4 +1,5 @@
 import pymupdf
+import pymupdf4llm
 from PIL import Image
 import base64
 from io import BytesIO
@@ -10,7 +11,7 @@ import tempfile
 
 import subprocess
 
-def convertBase64PDFToImages(pdf_bytes) -> list[Image.Image]:
+async def convertBase64PDFToImages(pdf_bytes) -> list[Image.Image]:
     # code to convert PDF to images
 
     pdf_file = pymupdf.open(stream = pdf_bytes, filetype = "pdf")
@@ -24,6 +25,14 @@ def convertBase64PDFToImages(pdf_bytes) -> list[Image.Image]:
     
 
     return images
+
+async def convertBase64PDFToMarkdown(pdf_bytes) -> str:
+
+    pdf_file = pymupdf.open(stream = pdf_bytes, filetype = "pdf")
+
+    md_text = pymupdf4llm.to_markdown(pdf_file)
+
+    return md_text
 
 # video = mp.VideoFileClip("test_video.mp4")
 # # Extract the audio from the video 
@@ -44,7 +53,7 @@ def convertBase64PDFToImages(pdf_bytes) -> list[Image.Image]:
 # print("\nThe resultant text from video is: \n") 
 # print(text)
 
-def convertVideoToText(bytes_video) -> str:
+async def convertVideoToText(bytes_video) -> str:
 
     audio_file_name = "temp/audio.wav"
     try:

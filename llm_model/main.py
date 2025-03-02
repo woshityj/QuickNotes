@@ -1,7 +1,7 @@
 # from flask import Flask, request, jsonify
 # from llm_model import load_peft_model, load_multi_modal_llm, text_summarization, text_summarization_with_rag_validation, custom_chat, text_with_image, custom_chat_multi_modal_llm
-from llm_multi_model import loadMultiModalLLM, textSummarizationMultiModal, customChatWithMultiModelLLM, imagesWithMultiModelLLM, customChatVideoTranscriptWithMultiModelLLM, textElaborationMultiModel, question_and_answer_with_rag
-from document_processing import convertBase64PDFToImages, convertVideoToText
+from llm_multi_model import loadMultiModalLLM, textSummarizationMultiModal, customChatWithMultiModelLLM, imagesWithMultiModelLLM, customChatVideoTranscriptWithMultiModelLLM, textElaborationMultiModel, question_and_answer_with_rag, pdfWithMultiModelLLM
+from document_processing import convertBase64PDFToImages, convertVideoToText, convertBase64PDFToMarkdown
 from fact_checking_pipeline import fact_checking_pipeline, load_question_duplicate_model, load_passage_ranker, question_and_answer_with_notes
 from rag import load_wikipedia_embeddings_model
 
@@ -188,8 +188,8 @@ async def chat(messages: Annotated[str, Form()], file: Annotated[Optional[Upload
 
                 return reply
             elif (check_file_type_pdf(bytes_object)):
-                images = convertBase64PDFToImages(bytes_object)
-                reply = await imagesWithMultiModelLLM(llm_model, tokenizer, messages_json[-1]['content'], images)
+                md_text = await convertBase64PDFToMarkdown(bytes_object)
+                reply = await pdfWithMultiModelLLM(llm_model, tokenizer, messages_json[-1]['content'], md_text)
 
                 return reply
             
@@ -222,14 +222,14 @@ async def image(text: Annotated[str, Form()], image: UploadFile | None = None):
 
 @app.post("/question-answer-with-rag")
 async def question_answer_with_rag(content: Content):
-    try:
+    # try:
 
         response = await question_and_answer_with_rag(llm_model, tokenizer, content.content, embeddings_model)
 
         return {"data": response}
     
-    except Exception as e:
-        return HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
+    # except Exception as e:
+        # return HTTPException(status_code = status.HTTP_500_INTERNAL_SERVER_ERROR, detail = str(e))
 
 @app.post("/question-answer-with-notes")
 async def question_answer_with_notes(content: QuestionWithNotes):

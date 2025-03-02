@@ -1,6 +1,6 @@
 from llm_multi_model import generateLLMOutput, loadMultiModalLLM
 from copy import deepcopy
-from unsloth import FastVisionModel
+from unsloth import FastVisionModel, FastLanguageModel
 from transformers import AutoTokenizer
 from sentence_transformers import CrossEncoder
 from rag import rag_retrieval, load_embeddings_model, load_wikipedia_embeddings_model
@@ -118,7 +118,7 @@ def identify_checkworthiness(texts: list[str], model: FastVisionModel, tokenizer
 
 # Search RAG for evidences based on sentence
 
-def get_evidences_for_claim_rag(llm_model: FastVisionModel, tokenizer: AutoTokenizer, claim: str, question_duplicate_model: CrossEncoder, question_duplicate_tokenizer, passage_ranker: CrossEncoder):
+def get_evidences_for_claim_rag(llm_model: FastVisionModel|FastLanguageModel, tokenizer: AutoTokenizer, claim: str, question_duplicate_model: CrossEncoder, question_duplicate_tokenizer, passage_ranker: CrossEncoder):
 
     evidences = dict()
     evidences["aggregated"] = list()
@@ -456,7 +456,7 @@ def verify_document(claims: list[str], evidence: list[list[str]], model: FastVis
 
     return all(df["factuality"]), df
 
-def verify_claim(claim: str, evidences: list[str], model: FastVisionModel, tokenizer: AutoTokenizer, num_retries = 3) -> dict[str, any]:
+def verify_claim(claim: str, evidences: list[str], model: FastVisionModel|FastLanguageModel, tokenizer: AutoTokenizer, num_retries = 3) -> dict[str, any]:
 
     results = {}
     user_input = VERIFY_PROMPT.format(claim = claim, evidence = evidences)
@@ -504,16 +504,16 @@ def parse_stance_results(r):
         return "irrelevant"
 
 
-def stance(evidence, claim, model: FastVisionModel, tokenizer: AutoTokenizer) -> str:
+def stance(evidence, claim, model: FastVisionModel|FastVisionModel, tokenizer: AutoTokenizer) -> str:
     prompt = IDENTIFY_STANCE_PROMPT.format(claim = claim, evidence = evidence)
     r = generateLLMOutput(model, tokenizer, prompt, system_role = "You are a helpful factchecker assistant")
 
     return parse_stance_results(r)
 
-def verify_by_stance(claim: str, evidences: list[str], model: FastVisionModel, tokenizer: AutoTokenizer) -> any:
+def verify_by_stance(claim: str, evidences: list[str], model: FastVisionModel|FastLanguageModel, tokenizer: AutoTokenizer) -> any:
     labels = []
     for evidence in evidences:
-        labels.append(stance(evidence, claim, model=model))
+        labels.append(stance(evidence, claim, model=model, tokenizer = tokenizer))
     
     # based on stances of evidence, determine the true/false claim by rules
     # if there is one evidence supports, we assume it is correct

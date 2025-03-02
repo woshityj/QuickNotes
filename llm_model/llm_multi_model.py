@@ -5,11 +5,11 @@ import logging
 from rag import rag_retrieval
 from PIL import Image
 from pydantic import BaseModel
-from prompts import QUESTION_WITH_RAG_PROMPT, TEXT_SUMMARIZATION_PROMPT, VIDEO_TRANSCRIPT_PROMPT
+from prompts import QUESTION_WITH_RAG_PROMPT, TEXT_SUMMARIZATION_PROMPT, VIDEO_TRANSCRIPT_PROMPT, PDF_PROMPT
 from transformers import AutoTokenizer
 from transformers.utils import is_flash_attn_2_available
 from typing import Tuple
-from unsloth import FastVisionModel
+from unsloth import FastVisionModel, FastLanguageModel, get_chat_template
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
 os.environ["LANGCHAIN_API_KEY"] = "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"
@@ -56,7 +56,9 @@ def loadMultiModalLLM() -> Tuple[FastVisionModel, AutoTokenizer]:
 
     return llm_model, tokenizer
 
-def generateLLMOutput(model: FastVisionModel, tokenizer: AutoTokenizer, input_text: str, system_role: str = "You are a helpful assistant.") -> str:
+def generateLLMOutput(model: FastVisionModel|FastLanguageModel, tokenizer: AutoTokenizer, input_text: str, system_role: str = "You are a helpful assistant.") -> str:
+
+    # if type(model) is FastVisionModel:
     messages = [
     {
         "role": "system",
@@ -75,6 +77,32 @@ def generateLLMOutput(model: FastVisionModel, tokenizer: AutoTokenizer, input_te
     output_encoded = model.generate(**input_ids, max_new_tokens = 8192, temperature = 0.7, use_cache = True)
     prompt_length = input_ids['input_ids'].shape[1]
     output_decoded = tokenizer.decode(output_encoded[0][prompt_length:], skip_special_tokens = True)
+    # else:
+    #     # messages = [
+    #     # {
+    #     #     "role": "system",
+    #     #     "content": system_role
+    #     # },
+    #     # {
+    #     #     "role": "user",
+    #     #     "content": input_text
+    #     # }]
+
+    #     FastLanguageModel.for_inference(model)
+    #     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    #     # tokenizer = get_chat_template(
+    #     #     tokenizer,
+    #     #     chat_template = "Gemma"
+    #     # )
+
+    #     # formatted_text = tokenizer.apply_chat_template(messages, add_generation_prompt = False, tokenize = False)
+    #     input_ids = tokenizer(input_text, add_special_tokens = False, return_tensors = "pt").to(device)
+    #     output_encoded = model.generate(**input_ids, max_new_tokens = 8192, temperature = 0.7, use_cache = True)
+    #     prompt_length = input_ids['input_ids'].shape[1]
+    #     output_decoded = tokenizer.decode(output_encoded[0][prompt_length:], skip_special_tokens = True)
+    #     output_decoded = output_decoded.replace("user\n", "")
+    #     output_decoded = output_decoded.replace("true", "True")
+    #     output_decoded = output_decoded.replace("false", "False")
     return output_decoded
 
 async def textSummarizationMultiModal(llm_model: FastVisionModel, tokenizer: AutoTokenizer, input_text: str) -> str:
@@ -187,6 +215,36 @@ async def imagesWithMultiModelLLM(llm_model: FastVisionModel, tokenizer: AutoTok
 
     return output_decoded
 
+async def pdfWithMultiModelLLM(llm_model: FastVisionModel, tokenizer: AutoTokenizer, input_text: str, md_text: str) -> str:
+
+    prompt = PDF_PROMPT.format(input_text = input_text, md_text = md_text)
+
+    dialogue_template = [
+        {
+            "role": "system",
+            "content": "You are a helpful assistant. Answer all questions to the best of your ability in English."
+        }
+    ]
+    
+    dialogue_template.append({
+        "role": "user",
+        "content": [
+            {"type": "text", "text": prompt}
+        ]
+    })
+
+    FastVisionModel.for_inference(llm_model)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    formatted_text = tokenizer.apply_chat_template(dialogue_template, add_generation_prompt = True)
+    input_ids = tokenizer(None, formatted_text, return_tensors = "pt", add_special_tokens = False).to(device)
+
+    output_encoded = llm_model.generate(**input_ids, max_new_tokens = 8192, temperature = 0.1, use_cache = True)
+    prompt_length = input_ids['input_ids'].shape[1]
+    output_decoded = tokenizer.decode(output_encoded[0][prompt_length:], skip_special_tokens = True)
+
+    return output_decoded
+
+
 async def customChatVideoTranscriptWithMultiModelLLM(llm_model: FastVisionModel, tokenizer: AutoTokenizer, input_text: str, video_transcript: str) -> str:
 
     prompt = VIDEO_TRANSCRIPT_PROMPT.format(input_text = input_text, video_transcript = video_transcript)
@@ -225,6 +283,7 @@ async def question_and_answer_with_rag(llm_model: FastVisionModel, tokenizer: Au
     logger.info(f"RAG User Input: {user_input}")
     
     r = generateLLMOutput(llm_model, tokenizer, user_input)
+    logger.info(f"RAG Response: {r}")
 
     return r
 
