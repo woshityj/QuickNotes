@@ -26,6 +26,11 @@ const TemplateSchema = new Schema({
     isPublic: {
         type: Boolean,
         default: true
+    },
+    createdBy: {
+        type: Schema.Types.ObjectId,
+        ref: "users",
+        required: true
     }
 });
 

@@ -31,8 +31,11 @@ export const TemplateList = () => {
                 <TemplateItem
                     key = {template._id}
                     _id = {template._id}
+                    userId = {template.userId}
                     title = {template.title}
                     coverImage = {template.coverImage}
+                    isPublic = {template.isPublic}
+                    createdBy = {template.createdBy.name}
                 />
             ))}
         </div>

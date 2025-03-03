@@ -1,6 +1,12 @@
 import { useCookies } from "next-client-cookies";
 import { backendURL } from "../utils/constants";
 
+export type User = {
+    id: string;
+    name: string;
+    email: string;
+};
+
 export async function login({email, password}: {email: string, password: string}) {
     try {
         const response = await fetch(`${backendURL}/users/login`, {
