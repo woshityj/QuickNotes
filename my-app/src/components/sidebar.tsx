@@ -160,7 +160,6 @@ export default function SideBar({ currentUser }: { currentUser: User}) {
                     <Item label="Search" icon={Search} isSearch onClick={search.onOpen} />
                     <Item label="Settings" icon={Settings} onClick={settings.onOpen} />
                     <Item onClick={handleCreateNewDocument}  label="New page" icon={PlusCircle} />
-                    <Item label="QuickNotes AI" icon={Brain} />
                 </div>
                 
                 <div className="mt-4">

@@ -34,14 +34,14 @@ const ChatAiIcons = [
 	  icon: CopyIcon,
 	  label: "Copy",
 	},
-	{
-	  icon: RefreshCcw,
-	  label: "Refresh",
-	},
-	{
-	  icon: Volume2,
-	  label: "Volume",
-	},
+	// {
+	//   icon: RefreshCcw,
+	//   label: "Refresh",
+	// },
+	// {
+	//   icon: Volume2,
+	//   label: "Volume",
+	// },
 ];
 
 interface Message {
@@ -86,10 +86,10 @@ export default function ChatSupport() {
 		setMessages(newMessages);
 		setInput('');
 		setIsLoading(true);
+		setPreview(null);
 		setIsGenerating(true);
 
 		try {
-
 			// If RAG is enabled, only send the message to the RAG model
 			if (ragEnabled && !notesRAGEnabled) {
 				const questionAnswerWithRagResult = await questionAnswerWithRag({ content: userMessage });
@@ -130,7 +130,6 @@ export default function ChatSupport() {
 			}
 		} catch (error) {
 			console.log("Error sending message:", error);
-
 			setMessages(prevMessages => [...prevMessages, { role: 'assistant' as 'assistant', content: 'Sorry, I could not process your request at this time. Please try again later.'} ]);
 
 		} finally {
@@ -310,11 +309,17 @@ export default function ChatSupport() {
 								<span className="sr-only">Use Microphone</span>
 							</Button>
 
-							<Toggle aria-label="Toggle RAG" pressed = {ragEnabled} onPressedChange={() => setRagEnabled(!ragEnabled)}>
+							<Toggle aria-label="Toggle RAG" pressed = {ragEnabled} onPressedChange={() => {
+								setRagEnabled(!ragEnabled);
+								setNotesRAGEnabled(false);	
+							}}>
 								<Globe className="h-4 w-4" />
 							</Toggle>
 
-							<Toggle aria-label="Toggle Notes RAG" pressed = {notesRAGEnabled} onPressedChange={() => setNotesRAGEnabled(!notesRAGEnabled)}>
+							<Toggle aria-label="Toggle Notes RAG" pressed = {notesRAGEnabled} onPressedChange={() => {
+								setNotesRAGEnabled(!notesRAGEnabled);
+								setRagEnabled(false);
+							}}>
 								<NotebookPen className="h-4 w-4" />
 							</Toggle>
 

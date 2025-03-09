@@ -4,6 +4,11 @@ const nextConfig = {
         domains: [
             "files.edgestore.dev"
         ]
+    },
+    logging: {
+        fetches: {
+            fullUrl: true,
+        }
     }
 };
 

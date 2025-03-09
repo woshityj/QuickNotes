@@ -32,45 +32,25 @@ export default function Login() {
 
         if (loginData.email.length == 0 || loginData.password.length == 0) {
             toast.error("Form is incomplete");
-            return null
+            return null;
         }
 
         try {
-            // const response = await fetch(`${backendURL}/users/login`, {
-            //     method: "POST",
-            //     body: JSON.stringify(loginData),
-            //     headers: {
-            //         Accept: "application/json",
-            //         "Content-Type": "application/json",
-            //     },
-            //     credentials: 'include'
-            // });
-
             const response = await login(loginData);
 
-            if (response.ok) {
-                toast.success("Successfully logged in");
-                const authorizationToken = response.headers.get('Authorization') || "";
-                cookies.set('AuthorizationToken', authorizationToken);
-                console.log(response.headers.get('set-cookie'));
-                console.log(cookies.get('refreshToken'));
-                // let authorizationToken = response.headers.get('Authorization') || "";
-                // localStorage.setItem('AuthorizationToken', authorizationToken);
+            toast.success("Successfully logged in");
+            const authorizationToken = response.headers.get('Authorization') || "";
+            cookies.set('AuthorizationToken', authorizationToken);
 
-                const loginRedirectTimer = setTimeout(() => {
-                    router.push("/");
-                    router.refresh();
-                }, 2000);
+            const loginRedirectTimer = setTimeout(() => {
+                router.push("/");
+                router.refresh();
+            }, 2000);
 
-                return () => clearTimeout(loginRedirectTimer);
-            }
+            return () => clearTimeout(loginRedirectTimer);
 
-            if (response.status == 400) {
-                toast.error("Invalid Email or Password. Please try again!");
-            }
-        } catch (err) {
-            toast.error("Server failed to login");
-            console.log(err);
+        } catch (err: any) {
+            toast.error(err.message);
         }
     }
 

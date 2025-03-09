@@ -103,24 +103,29 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
 
             let summarizedContent = "";
 
-            toast.loading("Generating summary...");
-
             if (documentContent !== undefined || documentContent !== "") {
-                const summarizeContentResult = await summarizeContent({content: documentContent});
-                summarizedContent = summarizeContentResult.data;
-                
-                const summaryBlock: PartialBlock = {
-                    type: "paragraph",
-                    content: [{ type: "text", text: summarizedContent, styles: {} }],
+                try {
+                    const summarizeContentResult = await summarizeContent({content: documentContent});
+                    summarizedContent = summarizeContentResult.data;
+                    
+                    const summaryBlock: PartialBlock = {
+                        type: "paragraph",
+                        content: [{ type: "text", text: summarizedContent, styles: {} }],
+                    }
+    
+                    editor.insertBlocks([summaryBlock], currentBlock, "after");
+                    
+                    toast.dismiss();
+                    toast.success("Successfully generated summary");
+                }
+                catch (err: any) {
+                    toast.dismiss();
+                    toast.error("Failed to generate summary");
                 }
 
-                editor.insertBlocks([summaryBlock], currentBlock, "after");
-                
-                toast.dismiss();
-                toast.success("Successfully generated summary");
             } else {
                 toast.dismiss();
-                toast.error("Failed to generate summary");
+                toast.error("No content to summarize");
             }
         },
         group: "QuickNotes AI",
@@ -146,24 +151,29 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
 
             let summarizedContent = "";
 
-            toast.loading("Generating summary with fact check...");
 
             if (documentContent.length !== 0 || documentContent !== "") {
-                const summarizedContentResult = await summarizeContentWithFactCheck({content: documentContent});
-                summarizedContent = summarizedContentResult.data;
-
-                const summaryBlock: PartialBlock = {
-                    type: "paragraph",
-                    content: [{ type: "text", text: summarizedContent, styles: {} }],
+                try {
+                    toast.loading("Generating summary with fact check...");
+                    const summarizedContentResult = await summarizeContentWithFactCheck({content: documentContent});
+                    summarizedContent = summarizedContentResult.data;
+    
+                    const summaryBlock: PartialBlock = {
+                        type: "paragraph",
+                        content: [{ type: "text", text: summarizedContent, styles: {} }],
+                    }
+    
+                    editor.insertBlocks([summaryBlock], currentBlock, "after");
+    
+                    toast.dismiss();
+                    toast.success("Successfully generated summary with fact check");
+                } catch (err: any) {
+                    toast.dismiss();
+                    toast.error("Failed to generate summary with fact check");
                 }
-
-                editor.insertBlocks([summaryBlock], currentBlock, "after");
-
-                toast.dismiss();
-                toast.success("Successfully generated summary with fact check");
             } else {
                 toast.dismiss();
-                toast.error("Failed to generate summary with fact check");
+                toast.error("No content to summarize");
             }
         },
         group: "QuickNotes AI",
@@ -187,26 +197,29 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
                 return true;
             });
 
-            toast.loading("Elaborating text...");
 
             if (documentContent !== undefined || documentContent !== "") {
-                const elaborateTextResult = await elaborateText({content: documentContent});
-                const elaboratedContent = elaborateTextResult.data;
+                try {
+                    toast.loading("Elaborating text...");
 
-                const blocksFromMarkdown = await editor.tryParseMarkdownToBlocks(elaboratedContent)
+                    const elaborateTextResult = await elaborateText({content: documentContent});
+                    const elaboratedContent = elaborateTextResult.data;
+    
+                    const blocksFromMarkdown = await editor.tryParseMarkdownToBlocks(elaboratedContent)
 
-                // const elaboratedBlock: PartialBlock = {
-                //     type: "paragraph",
-                //     content: [{ type: "text", text: elaboratedContent, styles: {} }]
-                // }
+    
+                    editor.insertBlocks(blocksFromMarkdown, currentBlock, "after");
+    
+                    toast.dismiss();
+                    toast.success("Successfully elaborated text");
 
-                editor.insertBlocks(blocksFromMarkdown, currentBlock, "after");
-
-                toast.dismiss();
-                toast.success("Successfully elaborated text");
+                } catch (err: any) {
+                    toast.dismiss();
+                    toast.error("Failed to elaborate text");
+                }
             } else {
                 toast.dismiss();
-                toast.error("Failed to elaborate text");
+                toast.error("No content to elaborate");
             }
         },
         group: "QuickNotes AI",
@@ -225,13 +238,6 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
         generateSummaryWithFactCheckItem(editor),
         elaborateTextItem(editor)
     ];
-
-    // const editor: BlockNoteEditor = useBlockNote({
-    //     initialContent: initialContent ? JSON.parse(initialContent) as PartialBlock[] : undefined,
-    //     onEditorContentChange: (editor) => {
-    //         onChange(JSON.stringify(editor.topLevelBlocks, null, 2));
-    //     }
-    // });
 
     const editor: BlockNoteEditor = useCreateBlockNote({
         initialContent: initialContent ? JSON.parse(initialContent) as PartialBlock[] : undefined,

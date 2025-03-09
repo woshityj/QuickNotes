@@ -19,11 +19,14 @@ export async function login({email, password}: {email: string, password: string}
             credentials: 'include'
         });
 
-        return response;
+        if (response.ok) {
+            return response;
+        }
+        throw new Error("Invalid Email or Password. Please try again!");;
     }
-    catch (err) {
-        throw err;
+    catch (err: any) {
         console.log(err);
+        throw new Error(err.message);
     }
 }
 
@@ -39,10 +42,14 @@ export async function refreshToken() {
             credentials: 'include'
         });
 
-        return response;
+        if (response.ok) {
+            return response;
+        }
 
-    } catch (err) {
+        throw new Error("Failed to refresh token");
+    } catch (err: any) {
         console.log(err);
+        throw new Error(err.message);
     }    
 }
 
@@ -80,7 +87,7 @@ export async function getCurrentUser(authorizationToken: string) {
         return response;
         
     } catch (err) {
-        throw(err);
         console.log(err);
+        throw(err);
     }
 }
