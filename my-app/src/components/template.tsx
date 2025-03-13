@@ -96,7 +96,7 @@ export const TemplateItem = ({_id, userId, title, coverImage, isPublic, createdB
                 coverImage ? (
                     <img className="w-80 h-52 object-cover rounded-md" src={coverImage} onClick={handleCreateDocumentFromTemplate} />
                 ) : (
-                    <img className="w-80 h-52 object-cover rounded-md" src="/static/images/template_img_1.jpeg" onClick={handleCreateDocumentFromTemplate} />
+                    <img className="w-80 h-52 object-cover rounded-md" src="/static/images/template_img_1.png" onClick={handleCreateDocumentFromTemplate} />
                 )
             }
             <div className="flex content-center mt-2.5">
