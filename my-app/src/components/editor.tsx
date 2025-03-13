@@ -157,13 +157,10 @@ const Editor = ({onChange, initialContent, editable} : EditorProps) => {
                     toast.loading("Generating summary with fact check...");
                     const summarizedContentResult = await summarizeContentWithFactCheck({content: documentContent});
                     summarizedContent = summarizedContentResult.data;
+                    
+                    const blocksFromMarkdown = await editor.tryParseMarkdownToBlocks(summarizedContent);
     
-                    const summaryBlock: PartialBlock = {
-                        type: "paragraph",
-                        content: [{ type: "text", text: summarizedContent, styles: {} }],
-                    }
-    
-                    editor.insertBlocks([summaryBlock], currentBlock, "after");
+                    editor.insertBlocks(blocksFromMarkdown, currentBlock, "after");
     
                     toast.dismiss();
                     toast.success("Successfully generated summary with fact check");

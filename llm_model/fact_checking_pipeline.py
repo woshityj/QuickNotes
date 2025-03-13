@@ -61,8 +61,29 @@ async def fact_checking_pipeline(text: str, model: FastVisionModel, tokenizer: A
     log["checkworthy"] = checkworthy_results
     
     revised_text = revise_response(text, log["correction"].tolist(), model = model, tokenizer = tokenizer)
+    print(log['error'].tolist(), log['correction'].tolist(), log['factuality'].tolist())
+    revision_reasonings = get_reasonings_for_revision(log['error'].tolist(), log['correction'].tolist(), log['factuality'].tolist())
+
+    revised_text += "\n" + revision_reasonings
 
     return revised_text
+
+# Function to generate reasonings for revision
+
+def get_reasonings_for_revision(errors: list, corrections: list, factualities: list):
+
+    reasonings_text = "### Reasonings for Revision\n"
+
+    for error, correction, factuality in zip(errors, corrections, factualities):
+        reasonings_text += f"**Error**: {error}\n"
+        reasonings_text += "\n"
+        reasonings_text += f"**Correction**: {correction}\n"
+        reasonings_text += "\n"
+        reasonings_text += f"**Factuality**: {factuality}\n"
+        reasonings_text += "\n"
+        reasonings_text += "\n"
+    
+    return reasonings_text
 
 # Functions to convert text to sentences
 
@@ -142,7 +163,7 @@ def get_evidences_for_claim_rag(llm_model: FastVisionModel|FastLanguageModel, to
     snippets = dict()
 
     for question in questions:
-        snippets[question] = get_relevant_snippets_rag(question, question_duplicate_tokenizer, passage_ranker, max_search_results_per_query = 5, max_passages_per_search_result_to_return = 3)
+        snippets[question] = get_relevant_snippets_rag(question, embeddings_model, passage_ranker, max_search_results_per_query = 5, max_passages_per_search_result_to_return = 3)
         snippets[question] = deepcopy(sorted(snippets[question], key = lambda snippet: snippet["retrieval_score"], reverse = True)[:5])
     
     evidences['question_wise'] = deepcopy(snippets)
