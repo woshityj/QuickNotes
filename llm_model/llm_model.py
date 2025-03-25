@@ -16,8 +16,8 @@ from langchain_community.retrievers import ArxivRetriever
 from pydantic import BaseModel
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_API_KEY"] = "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"
-os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
+os.environ["LANGCHAIN_API_KEY"] = "XXXXXXXXXXXXXXXXXXXXX"
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = "XXXXXXXXXXXXXXXXX"
 
 device = "cuda"
 torch.cuda.empty_cache()
@@ -43,7 +43,7 @@ def load_peft_model():
         max_seq_length = 8192,
         dtype = None,
         load_in_4bit = True,
-        token = "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"
+        token = "XXXXXXXXXXXXXXXXXXXX"
     )
 
     peft_model.to(device)

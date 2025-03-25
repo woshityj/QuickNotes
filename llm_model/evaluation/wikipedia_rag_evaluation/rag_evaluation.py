@@ -24,7 +24,7 @@ from ragas.metrics import Faithfulness, FactualCorrectness, LLMContextRecall, LL
 
 device = "cuda"
 logging.basicConfig(format="%(levelname)s | %(asctime)s | %(message)s", level = logging.INFO)
-OPENAI_API_KEY = "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"
+OPENAI_API_KEY = "sk-proj-XXXXXXXXXXXXXXXXXXX"
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
 QUESTION_WITH_RAG_PROMPT = """
@@ -55,7 +55,7 @@ def loadMultiModalLLM() -> Tuple[FastVisionModel, AutoTokenizer]:
         max_seq_length = 8192,
         dtype = None,
         load_in_4bit = True,
-        token = "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"
+        token = "XXXXXXXXXXXXXXXX"
     )
 
     llm_model.to(device)

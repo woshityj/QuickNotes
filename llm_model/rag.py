@@ -111,7 +111,7 @@ def rag_retrieval(query: str, embeddings_model, num_results: int = 5):
 # print(result)
 
 
-# embeddings_model = load_wikipedia_embeddings_model()
-# result = rag_retrieval("elastic stress tensor in nanomembranes", embeddings_model)
+embeddings_model = load_wikipedia_embeddings_model()
+result = rag_retrieval("elastic stress tensor in nanomembranes", embeddings_model)
 
-# print(result)
+print(result)

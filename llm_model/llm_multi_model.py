@@ -12,14 +12,14 @@ from typing import Tuple
 from unsloth import FastVisionModel, FastLanguageModel, get_chat_template
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_API_KEY"] = "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"
-os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
+os.environ["LANGCHAIN_API_KEY"] = "XXXXXX"
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = "XXXXXX"
 
 # LANGCHAIN_TRACING_V2=true
 LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
-# LANGCHAIN_API_KEY="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"
+# LANGCHAIN_API_KEY="XXXXXXX"
 LANGCHAIN_PROJECT="capstone"
-HUGGING_FACE_API_TOKEN = "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"
+HUGGING_FACE_API_TOKEN = "XXXXXXX"
 
 # retriever = ArxivRetriever(load_max_docs = 2, get_ful_documents = True)
 
@@ -49,7 +49,7 @@ def loadMultiModalLLM() -> Tuple[FastVisionModel, AutoTokenizer]:
         max_seq_length = 8192,
         dtype = None,
         load_in_4bit = True,
-        token = "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"
+        token = "XXXXXXXXXXXXXXXXXXXXXXXXXX"
     )
 
     llm_model.to(device)
@@ -278,6 +278,7 @@ async def customChatVideoTranscriptWithMultiModelLLM(llm_model: FastVisionModel,
 async def question_and_answer_with_rag(llm_model: FastVisionModel, tokenizer: AutoTokenizer, question: str, embeddings_model) -> str:
 
     docs = rag_retrieval(question, embeddings_model)
+    logger.info(f"RAG Retrieved Documents: {docs}")
     context = "\n".join(x["text"] for x in docs)
     user_input = QUESTION_WITH_RAG_PROMPT.format(context = context, question = question)
     

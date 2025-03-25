@@ -41,7 +41,7 @@ def load_llm_model() -> Tuple[FastLanguageModel, AutoTokenizer]:
         max_seq_length = 8192,
         dtype = None,
         load_in_4bit = True,
-        token = "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"
+        token = "XXXXXXXXXXXXXXXXXXXXXXXXX"
     )
 
     llm_model.to(device)

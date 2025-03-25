@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from typing import List
 
 import json
+import logging
 from io import BytesIO
 
 from PIL import Image
@@ -38,14 +39,14 @@ class Messages(BaseModel):
 
 
 os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_API_KEY"] = "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"
-os.environ["HUGGINGFACEHUB_API_TOKEN"] = "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"
+os.environ["LANGCHAIN_API_KEY"] = "XXXXXXX"
+os.environ["HUGGINGFACEHUB_API_TOKEN"] = "XXXXXX"
 
 # LANGCHAIN_TRACING_V2=true
 LANGCHAIN_ENDPOINT="https://api.smith.langchain.com"
-# LANGCHAIN_API_KEY="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"
+# LANGCHAIN_API_KEY="XXXXXX"
 LANGCHAIN_PROJECT="capstone"
-HUGGING_FACE_API_TOKEN = "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"
+HUGGING_FACE_API_TOKEN = "XXXXXXX"
 
 app = FastAPI()
 # llm_model, tokenizer = load_peft_model()
@@ -53,6 +54,8 @@ llm_model, tokenizer = loadMultiModalLLM()
 question_duplicate_model, question_duplicate_tokenizer = load_question_duplicate_model()
 passage_ranker = load_passage_ranker()
 embeddings_model = load_wikipedia_embeddings_model()
+
+logger = logging.getLogger("uvicorn.error")
 
 def convert_messages_to_json(messages: List[Message]) -> str:
 
@@ -195,6 +198,7 @@ async def chat(messages: Annotated[str, Form()], file: Annotated[Optional[Upload
             
             elif (check_file_type_video(bytes_object)):
                 video_transcript = await convertVideoToText(bytes_object)
+                logger.info(f"Video transcript: {video_transcript}")
                 reply = await customChatVideoTranscriptWithMultiModelLLM(llm_model, tokenizer, messages_json[-1]['content'], video_transcript)
 
                 return reply
